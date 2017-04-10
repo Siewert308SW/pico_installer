@@ -1,5 +1,7 @@
 # PIco UPS HV3.0A Installer
 Bash script that installs all necessities for PIco HV3.0A series<br />
+If you want to comment or report bugs then please visit my thread on Pimodules.<br />
+http://www.forum.pimodules.com/viewtopic.php?f=27&t=4870 <br />
 <br />
 It's beta and i want to know if it works for you guys.<br />
 <br />
