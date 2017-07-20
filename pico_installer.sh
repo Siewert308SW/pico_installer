@@ -211,7 +211,7 @@ if [ "$picoserviceactive" == "active" ] ; then
 	echo " "
 	echo " Looks like you already installed a PIco daemon"
 	echo " As there is a daemon active"		
-	echo " As advised you should use this menu_option on a clean Rasbian 8.0 clean/fresh install"
+	echo " As advised you should use this installer on a clean Rasbian 8.0 clean/fresh install"
 	echo " Installer terminated!"
 	sudo rm -rf /home/pi/pico_menu_option.conf
 	exit
