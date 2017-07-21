@@ -1024,7 +1024,7 @@ sleep 1
 		if [ -f /home/pi/pico_menu_option.conf ]; then
 		sudo rm -rf /home/pi/pico_menu_option.conf
 		fi	
-		#sudo reboot		
+		sudo reboot		
 	else
 		echo " "
 		echo "::: PIco UPS HV3.0A removal finished"
