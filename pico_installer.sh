@@ -5,7 +5,7 @@
 ### pico_menu_option.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 18-7-2017
+### @updated: 21-7-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
@@ -136,7 +136,9 @@ if [[ $EUID -ne 0 ]]; then
 	echo "--- Script must be executed as root"
 	echo "--- Installer terminated!"
 	echo " "
-	sudo rm -rf /home/pi/pico_menu_option.conf	
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
 	exit
 else
 	echo "1. Script has been executed as root"	
@@ -154,7 +156,9 @@ if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
 	echo "--- Instal script detected you are using $release"
 	echo "--- Installer terminated!"
 	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit
 else
 	echo "2. Script detected a compatible $release version"	
@@ -172,7 +176,9 @@ if [ "$rpiversion" != "Raspberry Pi 3 Model B Rev 1.2" ]; then
 	echo "--- Install script detected you are using $rpiversion"
 	echo "--- Installer terminated!"
 	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit
 else
 	echo "3. Script detected a compatible $rpiversion"	
@@ -194,7 +200,9 @@ else
 	echo "--- Install script detected you are using $kernel_version"
 	echo "--- Installer terminated!"
 	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit
 	
 fi
@@ -211,9 +219,11 @@ if [ "$picoserviceactive" == "active" ] ; then
 	echo " "
 	echo " Looks like you already installed a PIco daemon"
 	echo " As there is a daemon active"		
-	echo " As advised you should use this installer on a clean Rasbian 8.0 clean/fresh install"
+	echo " As advised you should use this menu_option on a clean Rasbian 8.0 clean/fresh install"
 	echo " Installer terminated!"
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit
 else
 	echo "5. Script didn't detect a previous running PIco service"
@@ -234,7 +244,9 @@ if [ -f $picodaemon ] ; then
 	echo " As advised you should use this installer on a clean Rasbian 8.0 clean/fresh install"
 	echo " Installer terminated!"
 	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit	
 else
 	echo "6. Script didn't detect a previous PIco daemon"	
@@ -254,7 +266,9 @@ if [ -f $picoinit ] ; then
 	echo " As advised you should use this installer on a clean Rasbian 8.0 clean/fresh install"
 	echo " Installer terminated!"
 	echo " "
-	sudo rm -rf /home/pi/pico_menu_option.conf	
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 	exit	
 else
 	echo "7. Script didn't detect a previous PIco init file"	
@@ -375,7 +389,9 @@ else
 	echo " please make sure your internet connection is working"
 	echo " Installer terminated!"
 	echo " "
-	sudo rm -rf /home/pi/pico_menu_option.conf	
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
 	exit
 fi	
 sleep 1	
@@ -547,7 +563,9 @@ echo " PIco UPS HV3.0a installation finished"
 echo " If no errors occured then everything should be up and running"
 echo " System will be rebooted in 15 seconds to let every changed be activated and loaded"
 sleep 15
-sudo rm -rf /home/pi/pico_menu_option.conf
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
 sudo reboot
 fi ### end menu option 1
 
@@ -582,7 +600,9 @@ if [[ $EUID -ne 0 ]]; then
 	echo "--- Script must be executed as root"
 	echo "--- Installer terminated!"
 	echo " "
-	sudo rm -rf /home/pi/pico_menu_option.conf	
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
 	exit
 else
 	echo "-> Script has been executed as root"	
@@ -600,7 +620,9 @@ if [ "$rpiversion" != "Raspberry Pi 3 Model B Rev 1.2" ]; then
 	echo "--- Install script detected you are using $rpiversion"
 	echo "--- Installer terminated!"
 	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
 	exit	
 fi
 sleep 1
@@ -649,6 +671,9 @@ read -p "Press enter to continue..."
 echo " "
 
 ### Checking if i2c is enabled
+echo " "
+echo "::: PIco UPS HV3.0A - dtparam=i2c_arm=on"
+echo "------------------------------------------------------------------------"
 raspii2c=`sudo cat /boot/config.txt | grep dtparam=i2c_arm=on`
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
 	echo "- Script detected dtparam i2c is enabled"
@@ -667,6 +692,9 @@ else
 fi
 
 ### Checking if serial uart is enabled
+echo " "
+echo "::: PIco UPS HV3.0A - enable_uart"
+echo "------------------------------------------------------------------------"
 raspiuart=`sudo cat /boot/config.txt | grep enable_uart`
 if [ "$raspiuart" == "enable_uart=1" ]; then
 	echo "- Script detected serial uart is enabled"
@@ -684,6 +712,9 @@ else
 fi
 
 ### Checking if rtc dtoverlay module is loaded
+echo " "
+echo "::: PIco UPS HV3.0A - dtoverlay=i2c-rtc,ds1307"
+echo "------------------------------------------------------------------------"
 rtcmodule=`sudo cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
 if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
 	echo "- Script detected rtc dtoverlay is enabled"
@@ -701,6 +732,9 @@ else
 fi
 
 ### Checking if i2c-bcm2708 module is loaded
+echo " "
+echo "::: PIco UPS HV3.0A - i2c-bcm2708"
+echo "------------------------------------------------------------------------"
 bcmmodule=`sudo cat /etc/modules | grep i2c-bcm2708`
 if [ "$bcmmodule" == "i2c-bcm2708" ]; then
 	echo "- Script detected bcm2708 module enabled"
@@ -718,6 +752,9 @@ else
 fi
 
 ### Checking if i2c-dev module is loaded
+echo " "
+echo "::: PIco UPS HV3.0A - i2c-dev"
+echo "------------------------------------------------------------------------"
 i2cmodule=`sudo cat /etc/modules | grep i2c-dev`
 if [ "$i2cmodule" == "i2c-dev" ]; then
 	echo "- Script detected i2c-dev module enabled"
@@ -734,6 +771,9 @@ else
 	echo "- Script detected i2c-dev module already disabled"
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-rpi.gpio package"
+echo "------------------------------------------------------------------------"
 if [ $pythonrpigpio -eq 1 ]; then
 echo "- python-rpi.gpio installed"
 	read -p "==> Remove python-rpi.gpio? (y/n)?" CONT
@@ -745,6 +785,9 @@ echo "- python-rpi.gpio installed"
 	fi
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - git package"
+echo "------------------------------------------------------------------------"
 if [ $git -eq 3 ]; then
 echo "- git installed"
 	read -p "==> Remove git? (y/n)?" CONT
@@ -756,6 +799,9 @@ echo "- git installed"
 	fi
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-dev package"
+echo "------------------------------------------------------------------------"
 if [ $pythondev -eq 2 ]; then
 echo "- python-dev installed"
 	read -p "==> Remove python-dev? (y/n)?" CONT
@@ -769,6 +815,9 @@ else
 	echo "-> python-dev already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-serial package"
+echo "------------------------------------------------------------------------"
 if [ $pythonserial -eq 1 ]; then
 echo "- python-serial installed"
 	read -p "==> Remove python-serial? (y/n)?" CONT
@@ -782,6 +831,9 @@ else
 	echo "-> python-serial already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-smbus package"
+echo "------------------------------------------------------------------------"
 if [ $pythonsmbus -eq 1 ]; then
 echo "- python-smbus installed"
 	read -p "==> Remove python-smbus? (y/n)?" CONT
@@ -795,6 +847,9 @@ else
 	echo "-> python-smbus already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-jinja2 package"
+echo "------------------------------------------------------------------------"
 if [ $pythonjinja2 -eq 1 ]; then
 echo "- python-jinja2 installed"
 	read -p "==> Remove python-jinja2? (y/n)?" CONT
@@ -808,6 +863,9 @@ else
 	echo "-> python-jinja2 already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-xmltodict package"
+echo "------------------------------------------------------------------------"
 if [ $pythonxmltodict -eq 1 ]; then
 echo "- python-xmltodict installed"
 	read -p "==> Remove python-xmltodict? (y/n)?" CONT
@@ -821,8 +879,11 @@ else
 	echo "-> python-xmltodict already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-psutil package"
+echo "------------------------------------------------------------------------"
 if [ $pythonpsutil -eq 1 ]; then
-echo "8. python-psutil installed"
+echo "- python-psutil installed"
 	read -p "==> Remove python-psutil? (y/n)?" CONT
 	if [ "$CONT" = "y" ]; then
 	sudo apt-get remove python-psutil -y > /dev/null 2>&1
@@ -834,6 +895,9 @@ else
 	echo "-> python-psutil already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - python-pip package"
+echo "------------------------------------------------------------------------"
 if [ $pythonpip -eq 1 ]; then
 echo "- python-pip installed"
 	read -p "==> Remove python-pip? (y/n)?" CONT
@@ -847,6 +911,9 @@ else
 	echo "-> python-pip already removed"		
 fi
 
+echo " "
+echo "::: PIco UPS HV3.0A - i2c-tools package"
+echo "------------------------------------------------------------------------"
 if [ $i2ctools -eq 1 ]; then
 echo "- i2c-tools installed"
 	read -p "==> Remove i2c-tools? (y/n)?" CONT
@@ -868,11 +935,13 @@ sleep 1
 	echo "-> Please Standby!"
 	echo " "	
 	echo "- sudo apt-get clean"
+	sudo rm -rf /etc/pimodules/picofssd
+	sudo rm -rf /etc/default/picofssd
+	sudo rm -rf /etc/pimodules
+	sudo rm -rf /usr/local/lib/python2.7/dist-packages/pimodules
 	sudo apt-get clean > /dev/null 2>&1
 	echo "- sudo apt-get autoremove"	
 	sudo apt-get autoremove -y > /dev/null 2>&1
-	echo " "
-	sudo rm -rf /home/pi/pico_menu_option.conf
 sleep 1
 
 #######################################################################################################
@@ -890,8 +959,10 @@ echo " After the system has been reboot then your able to shutdown the system an
 echo " "
 echo " System will be rebooted in 15 seconds..."
 sleep 15
+if [ -f /home/pi/pico_menu_option.conf ]; then
 sudo rm -rf /home/pi/pico_menu_option.conf
-sudo reboot
+fi	
+#sudo reboot
 fi ### end menu option 2
 
 #######################################################################################################
@@ -906,5 +977,7 @@ echo "---------------------------------------------------"
 echo " Thx $user for using PIco HV3.0A Installer"
 echo " Installer terminated!"
 echo " "	
-sudo rm -rf /home/pi/pico_menu_option.conf	
+if [ -f /home/pi/pico_menu_option.conf ]; then
+sudo rm -rf /home/pi/pico_menu_option.conf
+fi	
 fi ### end menu option 3	
