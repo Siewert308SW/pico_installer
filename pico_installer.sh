@@ -5,7 +5,7 @@
 ### pico_menu_option.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 18-7-2017
+### @updated: 22-7-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
@@ -36,6 +36,78 @@ fi
 else
 echo menu_option=0 >> /home/pi/pico_menu_option.conf
 fi
+
+### Checking if script is executed as root
+if [[ $EUID -ne 0 ]]; then
+	echo " "
+	echo "::: Installer terminated!"
+	echo "------------------------------------------------------------------------"
+	echo " "
+	echo "--- Script must be executed as root"
+	echo "--- Installer terminated!"
+	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
+	exit
+fi
+
+### Checking if OS version matches preferences
+release=`/usr/bin/lsb_release -s -d`
+if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
+	echo " "
+	echo "::: Installer terminated!"
+	echo "------------------------------------------------------------------------"
+	echo " "
+	echo "--- Installer is intended for Raspbian GNU/Linux 8.0 (jessie)"
+	echo "--- Instal script detected you are using $release"
+	echo "--- Installer terminated!"
+	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
+	exit
+fi
+
+### Checking if RPi version matches preferences
+rpiversion=`cat /proc/device-tree/model`
+if [ "$rpiversion" != "Raspberry Pi 3 Model B Rev 1.2" ]; then
+	echo " "
+	echo "::: Installer terminated!"
+	echo "------------------------------------------------------------------------"
+	echo " "
+	echo "--- Installer is intended for Raspberry Pi 3 Model B Rev 1.2"
+	echo "--- Install script detected you are using $rpiversion"
+	echo "--- Installer terminated!"
+	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
+	exit	
+fi
+
+### Checking if kernel version matches preferences
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+kernel_version=$(uname -r | /usr/bin/cut -c 1-6)
+
+if [ $(version $kernel_version) -ge $(version "4.9") ] || [ $(version $kernel_version) -ge $(version "4.4.50") ]; then
+	echo " "
+else
+	echo " "
+	echo "::: Installer terminated!"
+	echo "------------------------------------------------------------------------"
+	echo " "
+	echo "--- Installer is intended for kernel version 4.4.50 or higher"
+	echo "--- Install script detected you are using $kernel_version"
+	echo "--- Installer terminated!"
+	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi
+	exit
+	
+fi
+
 #######################################################################################################
 ### PIco UPS HV3.0A install menu
 #######################################################################################################
@@ -126,92 +198,11 @@ echo "::: PIco UPS HV3.0A precautions check"
 echo "------------------------------------------------------------------------"
 sleep 1
 
-### Checking if script is executed as root
-if [[ $EUID -ne 0 ]]; then
-	echo " "
-	echo "::: Installer terminated!"
-	echo "------------------------------------------------------------------------"
-	echo " "
-	echo "--- Script must be executed as root"
-	echo "--- Installer terminated!"
-	echo " "
-	if [ -f /home/pi/pico_menu_option.conf ]; then
-	sudo rm -rf /home/pi/pico_menu_option.conf
-	fi	
-	exit
-else
-	echo "1. Script has been executed as root"	
-fi
-sleep 1
-
-### Checking if OS version matches preferences
-release=`/usr/bin/lsb_release -s -d`
-if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
-	echo " "
-	echo "::: Installer terminated!"
-	echo "------------------------------------------------------------------------"
-	echo " "
-	echo "--- Installer is intended for Raspbian GNU/Linux 8.0 (jessie)"
-	echo "--- Instal script detected you are using $release"
-	echo "--- Installer terminated!"
-	echo " "
-	if [ -f /home/pi/pico_menu_option.conf ]; then
-	sudo rm -rf /home/pi/pico_menu_option.conf
-	fi
-	exit
-else
-	echo "2. Script detected a compatible $release version"	
-fi
-sleep 1
-
-### Checking if RPi version matches preferences
-rpiversion=`cat /proc/device-tree/model`
-if [ "$rpiversion" != "Raspberry Pi 3 Model B Rev 1.2" ]; then
-	echo " "
-	echo "::: Installer terminated!"
-	echo "------------------------------------------------------------------------"
-	echo " "
-	echo "--- Installer is intended for Raspberry Pi 3 Model B Rev 1.2"
-	echo "--- Install script detected you are using $rpiversion"
-	echo "--- Installer terminated!"
-	echo " "
-	if [ -f /home/pi/pico_menu_option.conf ]; then
-	sudo rm -rf /home/pi/pico_menu_option.conf
-	fi
-	exit
-else
-	echo "3. Script detected a compatible $rpiversion"	
-fi
-sleep 1
-
-### Checking if kernel version matches preferences
-function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
-kernel_version=$(uname -r | /usr/bin/cut -c 1-6)
-
-if [ $(version $kernel_version) -ge $(version "4.9") ] || [ $(version $kernel_version) -ge $(version "4.4.50") ]; then
-	echo "4. Script detected a compatible kernel version - $kernel_version"
-else
-	echo " "
-	echo "::: Installer terminated!"
-	echo "------------------------------------------------------------------------"
-	echo " "
-	echo "--- Installer is intended for kernel version 4.4.50 or higher"
-	echo "--- Install script detected you are using $kernel_version"
-	echo "--- Installer terminated!"
-	echo " "
-	if [ -f /home/pi/pico_menu_option.conf ]; then
-	sudo rm -rf /home/pi/pico_menu_option.conf
-	fi
-	exit
-	
-fi
-sleep 1
-
 ### Checking if there's a previous PIco service running
 picoserviceactive=`sudo service picofssd status | grep Active | awk {'print $2'}`
 
 if [ "$picoserviceactive" == "active" ] ; then
-	echo "5. Script detected a previous running PIco service"
+	echo "- Script detected a previous running PIco service"
 	echo " "
 	echo "::: Installer terminated!"
 	echo "------------------------------------------------------------------------"
@@ -225,7 +216,7 @@ if [ "$picoserviceactive" == "active" ] ; then
 	fi
 	exit
 else
-	echo "5. Script didn't detect a previous running PIco service"
+	echo "- Script didn't detect a previous running PIco service"
 	
 fi
 sleep 1
@@ -233,7 +224,7 @@ sleep 1
 ### Checking if there's a previous PIco daemon running
 picodaemon="/usr/local/bin/picofssd"
 if [ -f $picodaemon ] ; then
-	echo "6. Script detected a previous PIco daemon"
+	echo "- Script detected a previous PIco daemon"
 	echo " "
 	echo "::: Installer terminated!"
 	echo "------------------------------------------------------------------------"
@@ -248,7 +239,7 @@ if [ -f $picodaemon ] ; then
 	fi
 	exit	
 else
-	echo "6. Script didn't detect a previous PIco daemon"	
+	echo "- Script didn't detect a previous PIco daemon"	
 fi	
 sleep 1
 
@@ -270,19 +261,19 @@ if [ -f $picoinit ] ; then
 	fi
 	exit	
 else
-	echo "7. Script didn't detect a previous PIco init file"	
+	echo "- Script didn't detect a previous PIco init file"	
 fi	
 sleep 1
 
 ### Checking if i2c is enabled
 raspii2c=`sudo cat /boot/config.txt | grep dtparam=i2c_arm=on`
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
-	echo "8. Script detected dtparam i2c already enabled"
+	echo "- Script detected dtparam i2c already enabled"
 elif [ "$raspii2c" == "#dtparam=i2c_arm=on" ]; then	
-	echo "8. Script enabled dtparam i2c"
+	echo "- Script enabled dtparam i2c"
 	sed -i "s,$raspii2c,dtparam=i2c_arm=on," /boot/config.txt	
 else
-	echo "8. Script enabled dtparam i2c"
+	echo "- Script enabled dtparam i2c"
 	sudo sh -c "echo 'dtparam=i2c_arm=on' >> /boot/config.txt"
 fi
 sleep 1
@@ -290,18 +281,18 @@ sleep 1
 ### Checking if serial uart is enabled
 raspiuart=`sudo cat /boot/config.txt | grep enable_uart`
 if [ "$raspiuart" == "enable_uart=1" ]; then
-	echo "7. Script detected serial uart already enabled"
+	echo "- Script detected serial uart already enabled"
 elif [ "$raspiuart" == "#enable_uart=1" ]; then	
-	echo "7. Script enabled serial uart"
+	echo "- Script enabled serial uart"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
 elif [ "$raspiuart" == "#enable_uart=0" ]; then	
-	echo "7. Script enabled serial uart"
+	echo "- Script enabled serial uart"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
 elif [ "$raspiuart" == "enable_uart=0" ]; then	
-	echo "7. Script enabled serial uart"
+	echo "- Script enabled serial uart"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt	
 else
-	echo "7. Script enabled serial uart"
+	echo "- Script enabled serial uart"
 	sudo sh -c "echo 'enable_uart=1' >> /boot/config.txt"
 fi
 sleep 1
@@ -309,32 +300,32 @@ sleep 1
 ### Checking for old rtc module load statement
 rtcmoduleold=`sudo cat /etc/modules | grep rtc-ds1307`
 if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-	echo "9. Script detected old rtc module, module disabled"
+	echo "- Script detected old rtc module, module disabled"
 	sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules	
 else
-	echo "9. Script didn't detect a old rtc module statement, step skipped"
+	echo "- Script didn't detect a old rtc module statement, step skipped"
 fi
 sleep 1
 
 ### Checking for old rtc load statement in rc.local
 rtcmoduleold2=`sudo cat /etc/rc.local | grep echo`
 if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-	echo "10.Script detected old rtc rc.local load statement, statement disabled"
+	echo "- Script detected old rtc rc.local load statement, statement disabled"
 	sed -i "s,$rtcmoduleold2,#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local	
 else
-	echo "10.Script didn't detect a old rtc load statement, step skipped"
+	echo "- Script didn't detect a old rtc load statement, step skipped"
 fi
 sleep 1
 
 ### Checking if rtc dtoverlay module is loaded
 rtcmodule=`sudo cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
 if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
-	echo "11.Script detected rtc dtoverlay already enabled"
+	echo "- Script detected rtc dtoverlay already enabled"
 elif [ "$rtcmodule" == "#dtoverlay=i2c-rtc,ds1307" ]; then	
-	echo "11.Script enabled rtc dtoverlay"
+	echo "- Script enabled rtc dtoverlay"
 	sed -i "s,$rtcmodule,dtoverlay=i2c-rtc,ds1307," /boot/config.txt	
 else
-	echo "11.Script enabled rtc dtoverlay"
+	echo "- Script enabled rtc dtoverlay"
 	sudo sh -c "echo 'dtoverlay=i2c-rtc,ds1307' >> /boot/config.txt"
 fi
 sleep 1
@@ -342,12 +333,12 @@ sleep 1
 ### Checking if i2c-bcm2708 module is loaded
 bcmmodule=`sudo cat /etc/modules | grep i2c-bcm2708`
 if [ "$bcmmodule" == "i2c-bcm2708" ]; then
-	echo "12.Script detected bcm2708 module already enabled"
+	echo "- Script detected bcm2708 module already enabled"
 elif [ "$bcmmodule" == "#i2c-bcm2708" ]; then	
-	echo "12.Script enabled i2c-bcm2708 module"
+	echo "- Script enabled i2c-bcm2708 module"
 	sed -i "s,$bcmmodule,i2c-bcm2708," /etc/modules	
 else
-	echo "12.Script enabled i2c-bcm2708 module"
+	echo "- Script enabled i2c-bcm2708 module"
 	sudo sh -c "echo 'i2c-bcm2708' >> /etc/modules"
 fi
 sleep 1
@@ -355,12 +346,12 @@ sleep 1
 ### Checking if i2c-dev module is loaded
 i2cmodule=`sudo cat /etc/modules | grep i2c-dev`
 if [ "$i2cmodule" == "i2c-dev" ]; then
-	echo "13.Script detected i2c-dev module already enabled"
+	echo "- Script detected i2c-dev module already enabled"
 elif [ "$i2cmodule" == "#i2c-dev" ]; then	
-	echo "13.Script enabled i2c-dev module"
+	echo "- Script enabled i2c-dev module"
 	sed -i "s,$i2cmodule,i2c-dev," /etc/modules	
 else
-	echo "13.Script enabled i2c-dev module"
+	echo "- Script enabled i2c-dev module"
 	sudo sh -c "echo 'i2c-dev' >> /etc/modules"
 fi
 sleep 1
@@ -368,18 +359,18 @@ sleep 1
 ### Checking if hciuart service is loaded
 uartstatus=`sudo service hciuart status | grep Active | awk {'print $2'}`
 if [ "$uartstatus" == "active" ]; then
-	echo "14.Script detected hciuart service already active"
+	echo "- Script detected hciuart service already active"
 else
-	echo "14.Script enabled hciuart service"
+	echo "- Script enabled hciuart service"
 	sudo systemctl enable hciuart
 fi
 sleep 1
 
 ### Checking for a working internet connection
 if ping -c 1 google.com >> /dev/null 2>&1; then
-	echo "15.Script detected a working internet connection"
+	echo "- Script detected a working internet connection"
 else
-	echo "15.Script didn't detect a working internet connection"
+	echo "- Script didn't detect a working internet connection"
 	echo " "
 	echo "::: Installer terminated!"
 	echo "------------------------------------------------------------------------"
