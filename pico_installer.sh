@@ -2,10 +2,10 @@
 
 ###############################################################################################################################################################	
 
-### pico_menu_option.sh
+### pico_installer.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 22-7-2017
+### @updated: 23-7-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
@@ -108,16 +108,37 @@ else
 	
 fi
 
+### Checking for a working internet connection
+if ping -c 1 google.com >> /dev/null 2>&1; then
+	echo ""
+else
+	echo "-> Didn't detect a working internet connection"
+	echo " "
+	echo "::: Installer terminated!"
+	echo "------------------------------------------------------------------------"
+	echo " "
+	echo " Installer scripts needs a working internet connection"
+	echo " please make sure your internet connection is working"
+	echo " Installer terminated!"
+	echo " "
+	if [ -f /home/pi/pico_menu_option.conf ]; then
+	sudo rm -rf /home/pi/pico_menu_option.conf
+	fi	
+	exit
+fi	
+sleep 1
+
 #######################################################################################################
 ### PIco UPS HV3.0A install menu
 #######################################################################################################
 
 		echo "::: PIco UPS HV3.0A Install Menu"
 		echo "------------------------------------------------------------------------"
-		echo "--- Please select?"
 		echo " "
-		options=("Install - PIco HV3.0A" "Remove - PIco HV3.0A" "Quit")
+		options=("Install - PIco HV3.0A" "remove - PIco HV3.0A" "Status - PIco HV3.0A" "Quit")
+		COLUMNS=12
 		select opt in "${options[@]}"
+		
 		do
 			case $opt in
 				"Install - PIco HV3.0A")
@@ -127,24 +148,31 @@ fi
 					fi		
 					break			
 					;;
-				"Remove - PIco HV3.0A")
+				"remove - PIco HV3.0A")
 					menu_option=`cat /home/pi/pico_menu_option.conf | grep menu_option`	
 					if [ "$menu_option" != "menu_option=2" ] ; then	
 					sed -i "s,$menu_option,menu_option=2," /home/pi/pico_menu_option.conf
 					fi	
 					break			
-					;;				
-				"Quit")
+					;;
+				"Status - PIco HV3.0A")
 					menu_option=`cat /home/pi/pico_menu_option.conf | grep menu_option`	
 					if [ "$menu_option" != "menu_option=3" ] ; then	
 					sed -i "s,$menu_option,menu_option=3," /home/pi/pico_menu_option.conf
+					fi	
+					break			
+					;;						
+				"Quit")
+					menu_option=`cat /home/pi/pico_menu_option.conf | grep menu_option`	
+					if [ "$menu_option" != "menu_option=4" ] ; then	
+					sed -i "s,$menu_option,menu_option=4," /home/pi/pico_menu_option.conf
 					fi
 					break
 					;;
 				*) echo invalid option;;
-			esac
-		done
-
+			esac			
+		done	
+		
 if [ -f /home/pi/pico_menu_option.conf ]; then
 menu_option=`cat /home/pi/pico_menu_option.conf | grep menu_option`	
 fi	
@@ -157,9 +185,10 @@ echo " "
 echo "::: PIco UPS HV3.0A Installer"
 echo "------------------------------------------------------------------------"
 echo "Welcome $user,"
-echo "You are about to install all necessities for your brand new PIco HV3.0A UPS series"
+echo "You are about to install all necessities for your PIco HV3.0A UPS series"
 echo "There are some precautions and necessities to install"
-echo "Most of them are done by the script, below a list with precautions you've to take care of"
+echo "Most of them are done by the install script"
+echo "Below a list with precautions you've to take care of"
 echo " "
 echo "Precautions:"
 echo "1. Install your PIco UPS board before continuing"
@@ -175,9 +204,7 @@ echo "Disclaimer:"
 echo "I don't take any responsibility if your OS, Rpi or PIco board gets broken"
 echo "You are using this script on your own responsibility!!!"
 echo " "
-echo " "
-
-	read -p "==> Continue! (y/n)?" CONT
+	read -p "==> Continue? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
 		echo " "
 	else
@@ -209,14 +236,14 @@ if [ "$picoserviceactive" == "active" ] ; then
 	echo " "
 	echo " Looks like you already installed a PIco daemon"
 	echo " As there is a daemon active"		
-	echo " As advised you should use this menu_option on a clean Rasbian 8.0 clean/fresh install"
+	echo " As advised you should use this installer on a clean Rasbian 8.0 clean/fresh install"
 	echo " Installer terminated!"
 	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
 	fi
 	exit
 else
-	echo "- Script didn't detect a previous running PIco service"
+	echo "-> no PIco service running, step skipped"
 	
 fi
 sleep 1
@@ -239,7 +266,7 @@ if [ -f $picodaemon ] ; then
 	fi
 	exit	
 else
-	echo "- Script didn't detect a previous PIco daemon"	
+	echo "-> no PIco daemon detected, step skipped"	
 fi	
 sleep 1
 
@@ -261,19 +288,19 @@ if [ -f $picoinit ] ; then
 	fi
 	exit	
 else
-	echo "- Script didn't detect a previous PIco init file"	
+	echo "-> no PIco init file detected, step skipped"	
 fi	
 sleep 1
 
 ### Checking if i2c is enabled
 raspii2c=`sudo cat /boot/config.txt | grep dtparam=i2c_arm=on`
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
-	echo "- Script detected dtparam i2c already enabled"
+	echo "-> dtparam=i2c_arm already enabled, step skipped"
 elif [ "$raspii2c" == "#dtparam=i2c_arm=on" ]; then	
-	echo "- Script enabled dtparam i2c"
+	echo "-> dtparam=i2c_arm enabled"
 	sed -i "s,$raspii2c,dtparam=i2c_arm=on," /boot/config.txt	
 else
-	echo "- Script enabled dtparam i2c"
+	echo "-> dtparam=i2c_arm enabled"
 	sudo sh -c "echo 'dtparam=i2c_arm=on' >> /boot/config.txt"
 fi
 sleep 1
@@ -281,18 +308,18 @@ sleep 1
 ### Checking if serial uart is enabled
 raspiuart=`sudo cat /boot/config.txt | grep enable_uart`
 if [ "$raspiuart" == "enable_uart=1" ]; then
-	echo "- Script detected serial uart already enabled"
+	echo "-> serial uart already enabled, step skipped"
 elif [ "$raspiuart" == "#enable_uart=1" ]; then	
-	echo "- Script enabled serial uart"
+	echo "-> serial uart enabled"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
 elif [ "$raspiuart" == "#enable_uart=0" ]; then	
-	echo "- Script enabled serial uart"
+	echo "-> serial uart enabled"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
 elif [ "$raspiuart" == "enable_uart=0" ]; then	
-	echo "- Script enabled serial uart"
+	echo "-> serial uart enabled"
 	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt	
 else
-	echo "- Script enabled serial uart"
+	echo "-> serial uart enabled"
 	sudo sh -c "echo 'enable_uart=1' >> /boot/config.txt"
 fi
 sleep 1
@@ -300,32 +327,32 @@ sleep 1
 ### Checking for old rtc module load statement
 rtcmoduleold=`sudo cat /etc/modules | grep rtc-ds1307`
 if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-	echo "- Script detected old rtc module, module disabled"
+	echo "-> Wheezy rtc module detected, module disabled"
 	sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules	
 else
-	echo "- Script didn't detect a old rtc module statement, step skipped"
+	echo "-> no Wheezy rtc module statement detected, step skipped"
 fi
 sleep 1
 
-### Checking for old rtc load statement in rc.local
+### Checking for Wheezy rtc statement in rc.local
 rtcmoduleold2=`sudo cat /etc/rc.local | grep echo`
 if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-	echo "- Script detected old rtc rc.local load statement, statement disabled"
+	echo "-> Wheezy rtc rc.local statement detected, statement disabled"
 	sed -i "s,$rtcmoduleold2,#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local	
 else
-	echo "- Script didn't detect a old rtc load statement, step skipped"
+	echo "-> no Wheezy rtc rc.local statement, step skipped"
 fi
 sleep 1
 
 ### Checking if rtc dtoverlay module is loaded
 rtcmodule=`sudo cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
 if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
-	echo "- Script detected rtc dtoverlay already enabled"
+	echo "-> dtoverlay=i2c-rtc already enabled, step skipped"
 elif [ "$rtcmodule" == "#dtoverlay=i2c-rtc,ds1307" ]; then	
-	echo "- Script enabled rtc dtoverlay"
-	sed -i "s,$rtcmodule,dtoverlay=i2c-rtc,ds1307," /boot/config.txt	
+	echo "-> dtoverlay=i2c-rtc enabled"
+	sed -i -e 's/#dtoverlay=i2c-rtc,ds1307/dtoverlay=i2c-rtc,ds1307/g' /boot/config.txt	
 else
-	echo "- Script enabled rtc dtoverlay"
+	echo "-> dtoverlay=i2c-rtc enabled"
 	sudo sh -c "echo 'dtoverlay=i2c-rtc,ds1307' >> /boot/config.txt"
 fi
 sleep 1
@@ -333,12 +360,12 @@ sleep 1
 ### Checking if i2c-bcm2708 module is loaded
 bcmmodule=`sudo cat /etc/modules | grep i2c-bcm2708`
 if [ "$bcmmodule" == "i2c-bcm2708" ]; then
-	echo "- Script detected bcm2708 module already enabled"
+	echo "-> i2c-bcm2708 module already enabled, step skipped"
 elif [ "$bcmmodule" == "#i2c-bcm2708" ]; then	
-	echo "- Script enabled i2c-bcm2708 module"
+	echo "-> i2c-bcm2708 module enabled"
 	sed -i "s,$bcmmodule,i2c-bcm2708," /etc/modules	
 else
-	echo "- Script enabled i2c-bcm2708 module"
+	echo "-> i2c-bcm2708 module enabled"
 	sudo sh -c "echo 'i2c-bcm2708' >> /etc/modules"
 fi
 sleep 1
@@ -346,12 +373,12 @@ sleep 1
 ### Checking if i2c-dev module is loaded
 i2cmodule=`sudo cat /etc/modules | grep i2c-dev`
 if [ "$i2cmodule" == "i2c-dev" ]; then
-	echo "- Script detected i2c-dev module already enabled"
+	echo "-> i2c-dev module already enabled, step skipped"
 elif [ "$i2cmodule" == "#i2c-dev" ]; then	
-	echo "- Script enabled i2c-dev module"
+	echo "-> i2c-dev module enabled"
 	sed -i "s,$i2cmodule,i2c-dev," /etc/modules	
 else
-	echo "- Script enabled i2c-dev module"
+	echo "-> i2c-dev module enabled"
 	sudo sh -c "echo 'i2c-dev' >> /etc/modules"
 fi
 sleep 1
@@ -359,31 +386,11 @@ sleep 1
 ### Checking if hciuart service is loaded
 uartstatus=`sudo service hciuart status | grep Active | awk {'print $2'}`
 if [ "$uartstatus" == "active" ]; then
-	echo "- Script detected hciuart service already active"
+	echo "-> hciuart service already active, step skipped"
 else
-	echo "- Script enabled hciuart service"
+	echo "-> enabled hciuart service"
 	sudo systemctl enable hciuart
 fi
-sleep 1
-
-### Checking for a working internet connection
-if ping -c 1 google.com >> /dev/null 2>&1; then
-	echo "- Script detected a working internet connection"
-else
-	echo "- Script didn't detect a working internet connection"
-	echo " "
-	echo "::: Installer terminated!"
-	echo "------------------------------------------------------------------------"
-	echo " "
-	echo " Installer scripts needs a working internet connection"
-	echo " please make sure your internet connection is working"
-	echo " Installer terminated!"
-	echo " "
-	if [ -f /home/pi/pico_menu_option.conf ]; then
-	sudo rm -rf /home/pi/pico_menu_option.conf
-	fi	
-	exit
-fi	
 sleep 1	
 
 #######################################################################################################
@@ -395,21 +402,23 @@ echo "------------------------------------------------------------------------"
 	echo "-> This could take a awhile"	
 	echo "-> Please Standby!"
 	sleep 1
-	sudo apt-get update > /dev/null 2>&1	
+	sudo apt-get update > /dev/null 2>&1
+	echo " "	
 	echo "-> sourcelist updated!"	
 sleep 1
 
 ### Checking necessities
-pythonrpigpio=`sudo dpkg-query -l | grep python-rpi.gpio | wc -l`
-git=`sudo dpkg-query -l | grep git | wc -l` 
-pythondev=`sudo dpkg-query -l | grep python-dev | wc -l` 
-pythonserial=`sudo dpkg-query -l | grep python-serial | wc -l`
-pythonsmbus=`sudo dpkg-query -l | grep python-smbus | wc -l`
-pythonjinja2=`sudo dpkg-query -l | grep python-jinja2 | wc -l` 
-pythonxmltodict=`sudo dpkg-query -l | grep python-xmltodict | wc -l` 
-pythonpsutil=`sudo dpkg-query -l | grep python-psutil | wc -l` 
-pythonpip=`sudo dpkg-query -l | grep python-pip | wc -l`
-i2ctools=`sudo dpkg-query -l | grep i2c-tools | wc -l`
+pythonrpigpio=`dpkg-query -W -f='${Status}' python-rpi.gpio 2>/dev/null | grep -c "ok installed"`
+git=`dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed"`
+pythondev=`dpkg-query -W -f='${Status}' python-dev 2>/dev/null | grep -c "ok installed"`
+pythonserial=`dpkg-query -W -f='${Status}' python-serial 2>/dev/null | grep -c "ok installed"`
+pythonsmbus=`dpkg-query -W -f='${Status}' python-smbus 2>/dev/null | grep -c "ok installed"`
+pythonjinja2=`dpkg-query -W -f='${Status}' python-jinja2 2>/dev/null | grep -c "ok installed"`
+pythonxmltodict=`dpkg-query -W -f='${Status}' python-xmltodict 2>/dev/null | grep -c "ok installed"`
+pythonpsutil=`dpkg-query -W -f='${Status}' python-psutil 2>/dev/null | grep -c "ok installed"`
+pythonpip=`dpkg-query -W -f='${Status}' python-pip 2>/dev/null | grep -c "ok installed"`
+i2ctools=`dpkg-query -W -f='${Status}' i2c-tools 2>/dev/null | grep -c "ok installed"`
+
 echo " "
 echo "::: $release and PIco UPS HV3.0A necessities check"
 echo "------------------------------------------------------------------------"
@@ -419,82 +428,82 @@ echo " "
 sleep 1
 
 if [ $pythonrpigpio -eq 1 ]; then
-echo "- python-rpi.gpio already installed"
+echo "-> python-rpi.gpio package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-rpi.gpio"
+echo "-> installing python-rpi.gpio package"
 	sudo apt-get install -y python-rpi.gpio > /dev/null 2>&1
 fi
 
-if [ $git -eq 3 ]; then
-echo "- git already installed"
+if [ $git -eq 1 ]; then
+echo "-> git package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing git"
+echo "-> installing git package"
 	sudo apt-get install -y git > /dev/null 2>&1
 fi
 
-if [ $pythondev -eq 2 ]; then
-echo "- python-dev already installed"
+if [ $pythondev -eq 1 ]; then
+echo "-> python-dev package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-dev"
+echo "-> installing python-dev package"
 	sudo apt-get install -y python-dev > /dev/null 2>&1
 fi
 
 if [ $pythonserial -eq 1 ]; then
-echo "- python-serial already installed"
+echo "-> python-serial package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-serial"
+echo "-> installing python-serial package"
 	sudo apt-get install -y python-serial > /dev/null 2>&1
 fi
 
 if [ $pythonsmbus -eq 1 ]; then
-echo "- python-smbus already installed"
+echo "-> python-smbus package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-smbus"
+echo "-> installing python-smbus package"
 	sudo apt-get install -y python-smbus > /dev/null 2>&1
 fi
 
 if [ $pythonjinja2 -eq 1 ]; then
-echo "- python-jinja2 already installed"
+echo "-> python-jinja2 package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-jinja2"
+echo "-> installing python-jinja2 package"
 	sudo apt-get install -y python-jinja2 > /dev/null 2>&1
 fi
 
 if [ $pythonxmltodict -eq 1 ]; then
-echo "- python-xmltodict already installed"
+echo "-> python-xmltodict package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-xmltodict"
+echo "-> installing python-xmltodict package"
 	sudo apt-get install -y python-xmltodict > /dev/null 2>&1
 fi
 
 if [ $pythonpsutil -eq 1 ]; then
-echo "8. python-psutil already installed"
+echo "-> python-psutil package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-psutil"
+echo "-> installing python-psutil package"
 	sudo apt-get install -y python-psutil > /dev/null 2>&1
 fi
 
 if [ $pythonpip -eq 1 ]; then
-echo "- python-pip already installed"
+echo "-> python-pip package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing python-pip"
+echo "-> installing python-pip package"
 	sudo apt-get install -y python-pip > /dev/null 2>&1
 fi
 
 if [ $i2ctools -eq 1 ]; then
-echo "- i2c-tools already installed"
+echo "-> i2c-tools package already installed, step skipped"
 sleep 1   
 else
-echo "- Installing i2c-tools"
+echo "-> installing i2c-tools package"
 	sudo apt-get install -y i2c-tools > /dev/null 2>&1
 fi
 sleep 1
@@ -511,30 +520,30 @@ echo "------------------------------------------------------------------------"
 	echo " "	
 	sleep 1
 if [ -f $picogitclone ] ; then
-echo "1. Cloning PiModules git"	
+echo "-> cloning PiModules"	
 sudo rm -rf /home/pi/PiModules
 git clone https://github.com/Siewert308SW/PiModules.git	> /dev/null 2>&1
 else
-echo "1. Cloning PiModules git"	
+echo "-> cloning PiModules"	
 git clone https://github.com/Siewert308SW/PiModules.git	> /dev/null 2>&1
 	
 fi
 
-echo "2. Installing PIco mail daemon"	
+echo "-> installing PIco mail daemon"	
 cd /home/pi/PiModules/code/python/package
 	sudo python setup.py install > /dev/null 2>&1
 sleep 1
-echo "3. Installing PIco fssd daemon"
+echo "-> installing PIco fssd daemon"
 cd ../upspico/picofssd
 	sudo python setup.py install > /dev/null 2>&1
 sleep 1
-echo "4. Set picofssd defaults to update-rc.d"	
+echo "-> set picofssd defaults to update-rc.d"	
 	sudo update-rc.d picofssd defaults > /dev/null 2>&1
 sleep 1
-echo "5. Enabling picofssd daemon"
+echo "-> enabling picofssd daemon"
 	sudo update-rc.d picofssd enable > /dev/null 2>&1
 sleep 1
-echo "6. Starting picofssd daemon"
+echo "-> starting picofssd daemon"
 	sudo /etc/init.d/picofssd start > /dev/null 2>&1
 cd ~
 	sudo rm -rf /home/pi/PiModules
@@ -551,7 +560,9 @@ echo " Thx $user for using PIco HV3.0A Installer"
 echo " "	
 echo " PIco UPS HV3.0a installation finished"
 echo " If no errors occured then everything should be up and running"
+echo " "
 echo " System will be rebooted in 15 seconds to let every changed be activated and loaded"
+echo " "
 sleep 15
 	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
@@ -564,16 +575,16 @@ fi ### end menu option 1
 #######################################################################################################
 	
 if [ "$menu_option" == "menu_option=2" ]; then
-pythonrpigpio=`sudo dpkg-query -l | grep python-rpi.gpio | wc -l`
-git=`sudo dpkg-query -l | grep git | wc -l` 
-pythondev=`sudo dpkg-query -l | grep python-dev | wc -l` 
-pythonserial=`sudo dpkg-query -l | grep python-serial | wc -l`
-pythonsmbus=`sudo dpkg-query -l | grep python-smbus | wc -l`
-pythonjinja2=`sudo dpkg-query -l | grep python-jinja2 | wc -l` 
-pythonxmltodict=`sudo dpkg-query -l | grep python-xmltodict | wc -l` 
-pythonpsutil=`sudo dpkg-query -l | grep python-psutil | wc -l` 
-pythonpip=`sudo dpkg-query -l | grep python-pip | wc -l`
-i2ctools=`sudo dpkg-query -l | grep i2c-tools | wc -l`
+pythonrpigpio=`dpkg-query -W -f='${Status}' python-rpi.gpio 2>/dev/null | grep -c "ok installed"`
+git=`dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed"`
+pythondev=`dpkg-query -W -f='${Status}' python-dev 2>/dev/null | grep -c "ok installed"`
+pythonserial=`dpkg-query -W -f='${Status}' python-serial 2>/dev/null | grep -c "ok installed"`
+pythonsmbus=`dpkg-query -W -f='${Status}' python-smbus 2>/dev/null | grep -c "ok installed"`
+pythonjinja2=`dpkg-query -W -f='${Status}' python-jinja2 2>/dev/null | grep -c "ok installed"`
+pythonxmltodict=`dpkg-query -W -f='${Status}' python-xmltodict 2>/dev/null | grep -c "ok installed"`
+pythonpsutil=`dpkg-query -W -f='${Status}' python-psutil 2>/dev/null | grep -c "ok installed"`
+pythonpip=`dpkg-query -W -f='${Status}' python-pip 2>/dev/null | grep -c "ok installed"`
+i2ctools=`dpkg-query -W -f='${Status}' i2c-tools 2>/dev/null | grep -c "ok installed"`
 
 raspii2c=`sudo cat /boot/config.txt | grep dtparam=i2c_arm=on`
 raspiuart=`sudo cat /boot/config.txt | grep enable_uart`
@@ -583,12 +594,20 @@ rtcmoduleold=`sudo cat /etc/modules | grep rtc-ds1307`
 rtcmoduleold2=`sudo cat /etc/rc.local | grep echo`
 i2cmodule=`sudo cat /etc/modules | grep i2c-dev`
 
-if [ "$raspii2c" == "dtparam=i2c_arm=on" ] || [ "$raspiuart" == "enable_uart=1" ] || [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ] || [ "$bcmmodule" == "i2c-bcm2708" ] || [ "$rtcmoduleold" == "rtc-ds1307" ] || [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ] || [ "$i2cmodule" == "i2c-dev" ] || [ $pythonrpigpio -eq 1 ] || [ $git -eq 3 ] || [ $pythondev -eq 2 ] || [ $pythonserial -eq 1 ] || [ $pythonsmbus -eq 1 ] || [ $pythonjinja2 -eq 1 ] || [ $pythonxmltodict -eq 1 ] || [ $pythonpsutil -eq 1 ] || [ $pythonpip -eq 1 ] || [ $i2ctools -eq 1 ]; then
+if [ "$raspii2c" == "dtparam=i2c_arm=on" ] || [ "$raspiuart" == "enable_uart=1" ] || [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ] || [ "$bcmmodule" == "i2c-bcm2708" ] || [ "$rtcmoduleold" == "rtc-ds1307" ] || [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ] || [ "$i2cmodule" == "i2c-dev" ] || [ $pythonrpigpio -eq 1 ] || [ $git -eq 1 ] || [ $pythondev -eq 1 ] || [ $pythonserial -eq 1 ] || [ $pythonsmbus -eq 1 ] || [ $pythonjinja2 -eq 1 ] || [ $pythonxmltodict -eq 1 ] || [ $pythonpsutil -eq 1 ] || [ $pythonpip -eq 1 ] || [ $i2ctools -eq 1 ]; then
 
 echo " "
 echo " "
-echo "::: PIco UPS HV3.0A removal"
+echo "::: PIco UPS HV3.0A Removal"
 echo "------------------------------------------------------------------------"
+echo "Dear $user,"
+echo "You chose to remove all necessities which are PIco related"
+echo "But some necessities aren't PIco related and used by other resources"
+echo "There for you will be asked if you want to remove them..."
+echo " "
+
+read -p "Press enter to continue..."
+echo " "
 sleep 1
 
 ### Checking if script is executed as root
@@ -603,9 +622,7 @@ if [[ $EUID -ne 0 ]]; then
 	if [ -f /home/pi/pico_menu_option.conf ]; then
 	sudo rm -rf /home/pi/pico_menu_option.conf
 	fi	
-	exit
-else
-	echo "-> Script has been executed as root"	
+	exit	
 fi
 sleep 1
 
@@ -630,352 +647,258 @@ sleep 1
 ### Checking if there's a PIco service running
 picoserviceactive=`sudo service picofssd status | grep Active | awk {'print $2'}`
 
+
 if [ "$picoserviceactive" == "active" ] ; then
-	echo "- Script detected a previous running PIco service, service stopped"
+	echo "-> PIco service stopped"
 	sudo service picofssd stop > /dev/null 2>&1
 else
-	echo "-> Script didn't detect any running PIco service"
+	echo "-> no PIco service detected, step skipped"
 	
 fi
 sleep 1
+
 
 ### Checking if there's a PIco daemon running
 picodaemon="/usr/local/bin/picofssd"
 if [ -f $picodaemon ] ; then
-	echo "- Script detected a PIco daemon, daemon removed"
+	echo "-> PIco daemon removed"
 	sudo rm -rf /usr/local/bin/picofssd > /dev/null 2>&1
 else
-	echo "-> Script didn't detect any PIco daemon"	
+	echo "-> no PIco daemon detected, step skipped"	
 fi	
 sleep 1
+
 
 ### Checking if there's a PIco init file loaded
 picoinit="/etc/init.d/picofssd"	
 if [ -f $picoinit ] ; then
-	echo "- Script detected a previous PIco init file, init file removed"
+	echo "-> PIco init file removed"
 	sudo rm -rf /etc/init.d/picofssd > /dev/null 2>&1
 else
-	echo "-> Script didn't detect any PIco init file"	
+	echo "-> no PIco init file detected, step skipped"	
 fi	
 sleep 1
 
-echo " "
-echo "::: PIco UPS HV3.0A Removal"
-echo "------------------------------------------------------------------------"
-echo "Dear $user,"
-echo "Next necessities pending for removal aren't PIco related"
-echo "There for you will be asked if you want to remove them..."
-echo " "
-
-read -p "Press enter to continue..."
-echo " "
-
-
 ### Checking if i2c is enabled
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - dtparam=i2c_arm=on"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected dtparam i2c is enabled"
 	
-	read -p "==> Disable dtparam i2c! (y/n)?" CONT
+	read -p "-> disable dtparam=i2c_arm? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> dtparam i2c disabled"
+
 	sed -i "s,$raspii2c,#dtparam=i2c_arm=on," /boot/config.txt
-	else
-	echo "-> dtparam i2c untouched"
 	fi
 else
-	echo "-> Script detected dtparam i2c already disabled"
+	echo "-> dtparam=i2c_arm already disabled, step skipped"
 sleep 1
 fi
 
+
 ### Checking if serial uart is enabled
 if [ "$raspiuart" == "enable_uart=1" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - enable_uart"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected serial uart is enabled"
 	
-	read -p "==> Disable serial uart! (y/n)?" CONT
+	read -p "-> disable serial uart? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> serial uart disabled"
-	sed -i "s,$raspiuart,#enable_uart=1," /boot/config.txt
-	else
-	echo "-> serial uart untouched"	
+
+	sed -i "s,$raspiuart,#enable_uart=1," /boot/config.txt	
 	fi	
 
 else
-	echo "-> Script detected serial uart already disabled"
+	echo "-> serial uart already disabled, step skipped"
 sleep 1	
 fi
+
 
 ### Checking if rtc dtoverlay module is loaded
 if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - dtoverlay=i2c-rtc,ds1307"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected rtc dtoverlay is enabled"
 	
-	read -p "==> Disable rtc dtoverlay! (y/n)?" CONT
+	read -p "-> disable dtoverlay=i2c-rtc? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> rtc dtoverlay disabled"
-	sed -i "s,$rtcmodule,#dtoverlay=i2c-rtc,ds1307," /boot/config.txt
-	else
-	echo "-> rtc dt overlay untouched"	
+
+	sed -i -e 's/dtoverlay=i2c-rtc/#dtoverlay=i2c-rtc/g' /boot/config.txt	
 	fi
 	
 else
-	echo "-> Script detected rtc dtoverlay already disabled"
+	echo "-> dtoverlay=i2c-rtc already disabled, step skipped"
 sleep 1	
 fi
+
 
 ### Checking if i2c-bcm2708 module is loaded
 if [ "$bcmmodule" == "i2c-bcm2708" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - i2c-bcm2708"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected bcm2708 module enabled"
 	
-	read -p "==> Disable bcm2707 module! (y/n)?" CONT
+	read -p "-> disable i2c-bcm2707 module? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> bcm2708 module disabled"
-	sed -i "s,$bcmmodule,#i2c-bcm2708," /etc/modules
-	else
-	echo "-> bcm2708 module untouched"	
+
+	sed -i "s,$bcmmodule,#i2c-bcm2708," /etc/modules	
 	fi
 	
 else
-	echo "-> Script detected i2c-bcm2708 module already disabled"
+	echo "-> i2c-bcm2708 module already disabled, step skipped"
 sleep 1	
 fi
+
 
 ### Checking for old rtc module load statement
 if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - rtc-ds1307"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected old rtc module enabled"
 	
-	read -p "==> Disable old rtc module? (y/n)?" CONT
+	read -p "-> disable Wheezy rtc module? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> rtc module disabled"
+
 	sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules
-	else
-	echo "-> Old rtc module untouched"	
 	fi
 		
 else
-	echo "-> Script detected old rtc module already disabled"
+	echo "-> Wheezy rtc module already disabled, step skipped"
 sleep 1	
 fi
+
 
 ### Checking for old rtc load statement in rc.local
 if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - rtc-ds1307"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected old rtc statement enabled in rc.local"
 	
-	read -p "==> Disable old rtc statement? (y/n)?" CONT
+	read -p "-> disable Wheezy rtc statement? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> rtc statement disabled"
-	sed -i "s,$rtcmoduleold2,#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local
-	else
-	echo "-> Old rtc statement untouched"	
+
+	sudo sed -i -e 's/echo ds1307 0x68/#echo ds1307 0x68/g' /etc/rc.local
 	fi
 		
 else
-	echo "-> Script detected old rtc statement in rc.local already disabled"
+	echo "-> Wheezy rtc statement in rc.local already disabled, step skipped"
 sleep 1	
 fi
+
 
 ### Checking if i2c-dev module is loaded
 if [ "$i2cmodule" == "i2c-dev" ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - i2c-dev"
-echo "------------------------------------------------------------------------"
-	echo "- Script detected i2c-dev module enabled"
 	
-	read -p "==> Disable i2c-dev module! (y/n)?" CONT
+	read -p "-> disable i2c-dev module? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	echo "-> i2c-dev module disabled"
-	sed -i "s,$i2cmodule,#i2c-dev," /etc/modules
-	else
-	echo "-> i2c-dev module untouched"	
+
+	sed -i "s,$i2cmodule,#i2c-dev," /etc/modules	
 	fi	
 		
 else
-	echo "-> Script detected i2c-dev module already disabled"
+	echo "-> i2c-dev module already disabled, step skipped"
 sleep 1	
 fi
 
+
 if [ $pythonrpigpio -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-rpi.gpio package"
-echo "------------------------------------------------------------------------"
-echo "- python-rpi.gpio installed"
-	read -p "==> Remove python-rpi.gpio? (y/n)?" CONT
+	
+	read -p "-> remove python-rpi.gpio package ? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-rpi.gpio -y > /dev/null 2>&1
-	echo "-> python-rpi.gpio removed"
-	else
-	echo "-> python-rpi untouched"	
+	sudo apt-get remove python-rpi.gpio -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-rpi already removed"
+	echo "-> python-rpi package already removed, step skipped"
 sleep 1		
 fi
 
-if [ $git -eq 3 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - git package"
-echo "------------------------------------------------------------------------"
-echo "- git installed"
-	read -p "==> Remove git? (y/n)?" CONT
+
+if [ $git -eq 1 ]; then
+	
+	read -p "-> remove git package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
 	sudo apt-get remove git -y > /dev/null 2>&1
-	echo "-> git removed"
-	else
-	echo "-> git untouched"	
 	fi
 else
-	echo "-> git already removed"
+	echo "-> git package already removed, step skipped"
 sleep 1	
 fi
 
-if [ $pythondev -eq 2 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-dev package"
-echo "------------------------------------------------------------------------"
-echo "- python-dev installed"
-	read -p "==> Remove python-dev? (y/n)?" CONT
+
+if [ $pythondev -eq 1 ]; then
+	
+	read -p "-> remove python-dev package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
 	sudo apt-get remove python-dev -y > /dev/null 2>&1
-	echo "-> python-dev removed"
-	else
-	echo "-> python-dev untouched"	
 	fi
 else
-	echo "-> python-dev already removed"
+	echo "-> python-dev package already removed, step skipped"
 sleep 1	
 fi
+
 
 if [ $pythonserial -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-serial package"
-echo "------------------------------------------------------------------------"
-echo "- python-serial installed"
-	read -p "==> Remove python-serial? (y/n)?" CONT
+	
+	read -p "-> remove python-serial package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-serial -y > /dev/null 2>&1
-	echo "-> python-serial removed"	
-	else
-	echo "-> python-serial untouched"	
+	sudo apt-get remove python-serial -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-serial already removed"	
+	echo "-> python-serial package already removed, step skipped"	
 sleep 1	
 fi
+
 
 if [ $pythonsmbus -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-smbus package"
-echo "------------------------------------------------------------------------"
-echo "- python-smbus installed"
-	read -p "==> Remove python-smbus? (y/n)?" CONT
+	
+	read -p "-> remove python-smbus package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-smbus -y > /dev/null 2>&1
-	echo "-> python-smbus removed"
-	else
-	echo "-> python-smbus untouched"	
+	sudo apt-get remove python-smbus -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-smbus already removed"
+	echo "-> python-smbus package already removed, step skipped"
 sleep 1	
 fi
+
 
 if [ $pythonjinja2 -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-jinja2 package"
-echo "------------------------------------------------------------------------"
-echo "- python-jinja2 installed"
-	read -p "==> Remove python-jinja2? (y/n)?" CONT
+	
+	read -p "-> remove python-jinja2 package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
 	sudo apt-get remove python-jinja2 -y > /dev/null 2>&1
-	echo "-> python-jinja2 removed"
-	else
-	echo "-> python-jinja2 untouched"	
 	fi
 else
-	echo "-> python-jinja2 already removed"
+	echo "-> python-jinja2 package already removed, step skipped"
 sleep 1	
 fi
+
 
 if [ $pythonxmltodict -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-xmltodict package"
-echo "------------------------------------------------------------------------"
-echo "- python-xmltodict installed"
-	read -p "==> Remove python-xmltodict? (y/n)?" CONT
+	
+	read -p "-> remove python-xmltodict package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-xmltodict -y > /dev/null 2>&1
-	echo "-> python-xmltodict removed"
-	else
-	echo "-> python-xmltodict untouched"	
+	sudo apt-get remove python-xmltodict -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-xmltodict already removed"
+	echo "-> python-xmltodict package already removed, step skipped"
 sleep 1	
 fi
+
 
 if [ $pythonpsutil -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-psutil package"
-echo "------------------------------------------------------------------------"
-echo "- python-psutil installed"
-	read -p "==> Remove python-psutil? (y/n)?" CONT
+	
+	read -p "-> remove python-psutil package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-psutil -y > /dev/null 2>&1
-	echo "-> python-psutil removed"	
-	else
-	echo "-> python-psutil untouched"	
+	sudo apt-get remove python-psutil -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-psutil already removed"	
+	echo "-> python-psutil package already removed, step skipped"	
 sleep 1	
 fi
+
 
 if [ $pythonpip -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - python-pip package"
-echo "------------------------------------------------------------------------"
-echo "- python-pip installed"
-	read -p "==> Remove python-pip? (y/n)?" CONT
+	
+	read -p "-> remove python-pip package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove python-pip -y > /dev/null 2>&1
-	echo "-> python-pip removed"	
-	else
-	echo "-> python-pip untouched"	
+	sudo apt-get remove python-pip -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> python-pip already removed"
+	echo "-> python-pip package already removed, step skipped"
 sleep 1	
 fi
 
+
 if [ $i2ctools -eq 1 ]; then
-echo " "
-echo "::: PIco UPS HV3.0A - i2c-tools package"
-echo "------------------------------------------------------------------------"
-echo "- i2c-tools installed"
-	read -p "==> Remove i2c-tools? (y/n)?" CONT
+	
+	read -p "-> remove i2c-tools package? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-	sudo apt-get remove i2c-tools -y > /dev/null 2>&1
-	else
-	echo "-> i2c-tools untouched"	
+	sudo apt-get remove i2c-tools -y > /dev/null 2>&1	
 	fi
 else
-	echo "-> i2c-tools already removed"
+	echo "-> i2c-tools package already removed, step skipped"
 sleep 1	
 fi
 
@@ -990,7 +913,7 @@ fi
 	sudo rm -rf /etc/default/picofssd
 	sudo rm -rf /etc/pimodules
 	sudo rm -rf /usr/local/lib/python2.7/dist-packages/pimodules
-	echo "- sudo apt-get autoremove"	
+	echo "-> sudo apt-get autoremove"	
 	sudo apt-get autoremove -y > /dev/null 2>&1
 sleep 1
 
@@ -1008,8 +931,6 @@ sleep 1
 		echo " After the system has been reboot then your able to shutdown the system and remove the PIco board"
 		echo " "
 		echo " System will be rebooted in 15 seconds..."
-		echo " "
-		echo " Removal tool finished and terminated..."		
 		echo " "		
 		sleep 15
 		if [ -f /home/pi/pico_menu_option.conf ]; then
@@ -1018,12 +939,12 @@ sleep 1
 		sudo reboot		
 	else
 		echo " "
-		echo "::: PIco UPS HV3.0A removal finished"
+		echo "::: PIco UPS HV3.0A removal terminated"
 		echo "------------------------------------------------------------------------"
 		echo " "
 		echo " Thx $user for using PIco HV3.0A Removal tool"
 		echo " "	
-		echo " PIco UPS HV3.0a removal finished"
+		echo " PIco UPS HV3.0a removal terminated"
 		echo " The removal tools didn't remove or delete anything"
 		echo " As it seems you already used this tool or running it on a clean Jessie installation"
 		echo " "
@@ -1038,12 +959,84 @@ sleep 1
 
 fi
 
-
 #######################################################################################################
-### MENU OPTION 3: PIco UPS HV3.0A quit
+### MENU OPTION 3: PIco UPS HV3.0A Status
 #######################################################################################################
 	
 if [ "$menu_option" == "menu_option=3" ]; then
+picoserviceactive=`sudo service picofssd status | grep Active | awk {'print $2'}`
+
+	if [ "$picoserviceactive" != "active" ] ; then
+
+			echo " "
+			echo "::: UPS PIco HV3.0A Status"
+			echo "---------------------------------------------------"
+			echo " "			
+			echo "- PIco Firmware..........: n/a"
+			echo "- PIco Bootloader........: n/a"
+			echo "- PIco PCB Version.......: n/a"
+			echo "- PIco BAT Version.......: n/a"
+			echo "- HWclock................: n/a"
+			echo " "
+			echo "- UPS HV3.0A Status......: n/a"	
+			echo " "			
+			echo "---------------------------------------------------"
+			echo " "
+			
+		if [ -f /home/pi/pico_menu_option.conf ]; then
+		sudo rm -rf /home/pi/pico_menu_option.conf
+		fi
+		exit
+	else
+
+			firmware=`sudo i2cget -y 1 0x69 0x26 | grep 0x | awk {'print substr($1,3); '}`
+			bootloader=`sudo i2cget -y 1 0x69 0x25 | grep 0x | awk {'print substr($1,3); '}`
+			pcb=`sudo i2cget -y 1 0x69 0x24 | grep 0x | awk {'print substr($1,3); '}`
+			batterytype=`sudo i2cget -y 1 0x6b 0x07 | grep 0x | awk {'print substr($1,3); '}`			
+			hwclockget=`sudo hwclock -r --test | grep seconds | awk {'print $1, $2, $3, $4, $5'}`
+			picoservice=`sudo systemctl status picofssd -l | grep Active | awk {'print $2'}`
+			picoservicerun=`sudo systemctl status picofssd -l | grep Active | awk {'print $3'} | /usr/bin/cut -d "(" -f 2 | /usr/bin/cut -d ")" -f 1`
+			
+			if [ "$batterytype" == "50" ] ; then
+			battery="LiPO (ASCII: P) version Plus"
+			fi
+			
+			if [ "$batterytype" == "53" ] ; then
+			battery="LiPO (ASCII: S) version Stack/TopEnd"
+			fi
+
+			if [ "$batterytype" == "51" ] ; then
+			battery="LiFePO4 (ASCII: Q) version Plus"
+			fi
+
+			if [ "$batterytype" == "46" ] ; then
+			battery="LiFePO4 (ASCII : F) version Stack/TopEnd"
+			fi
+			
+			echo " "
+			echo "::: UPS PIco HV3.0A Status"
+			echo "---------------------------------------------------"
+			echo " "			
+			echo "- PIco Firmware.............: "$firmware
+			echo "- PIco Bootloader...........: "$bootloader
+			echo "- PIco PCB Version..........: "$pcb
+			echo "- PIco BAT Version..........: "$battery
+			echo "- HWclock...................: "$hwclockget
+			echo " "
+			echo "- UPS HV3.0A Status.........: ${picoservice} and ${picoservicerun}"
+			echo " "			
+			echo "---------------------------------------------------"
+			echo " "	
+		
+	fi
+
+fi
+
+#######################################################################################################
+### MENU OPTION 4: PIco UPS HV3.0A quit
+#######################################################################################################
+	
+if [ "$menu_option" == "menu_option=4" ]; then
 echo " "
 echo " "	
 echo "::: PIco UPS HV3.0A Installer Terminated"
@@ -1054,4 +1047,4 @@ echo " "
 if [ -f /home/pi/pico_menu_option.conf ]; then
 sudo rm -rf /home/pi/pico_menu_option.conf
 fi	
-fi	
+fi
