@@ -5,7 +5,7 @@
 ### pico_installer_beta.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 25-7-2017
+### @updated: 26-7-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
