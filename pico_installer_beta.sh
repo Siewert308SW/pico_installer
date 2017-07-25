@@ -28,7 +28,7 @@ echo "
 "
 user=`whoami`
 
-echo "::: PIco UPS HV3.0A Installer Check"
+echo "::: PIco UPS HV3.0A Installer Necessities Check"
 echo "------------------------------------------------------------------------"
 echo " "
 
@@ -46,6 +46,31 @@ if [[ $EUID -ne 0 ]]; then
 	echo "-> Script executed as root"
 fi
 
+grep=`dpkg-query -W -f='${Status}' grep 2>/dev/null | grep -c "ok installed"`
+pythonsmbus=`dpkg-query -W -f='${Status}' python-smbus 2>/dev/null | grep -c "ok installed"`
+git=`dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed"`
+lsbrelease=`dpkg-query -W -f='${Status}' lsb-release 2>/dev/null | grep -c "ok installed"`
+
+if [ $grep -ne 1 ]; then
+	echo "-> installing grep package"
+	apt-get install -y grep > /dev/null 2>&1
+fi
+
+if [ $pythonsmbus -ne 1 ]; then
+	echo "-> installing grep package"
+	apt-get install -y python-smbus > /dev/null 2>&1
+fi
+
+if [ $git -ne 1 ]; then
+	echo "-> installing git package"
+	apt-get install -y git > /dev/null 2>&1
+fi
+
+if [ $lsbrelease -ne 1 ]; then
+	echo "-> installing lsb-release package"
+	apt-get install -y lsb-release > /dev/null 2>&1
+fi
+				
 ### Checking if OS version matches preferences
 release=`/usr/bin/lsb_release -s -d`
 if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
@@ -817,7 +842,7 @@ echo " "
 					rm -rf /etc/pimodules
 					rm -rf /usr/local/lib/python2.7/dist-packages/pimodules	
 					apt-get autoremove -y > /dev/null 2>&1
-					echo "-> Done..."
+					echo "Done..."
 				sleep 1
 
 				#######################################################################################################
