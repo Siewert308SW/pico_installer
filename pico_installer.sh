@@ -1,13 +1,38 @@
 #!/bin/bash
 
-###############################################################################################################################################################	
-
+#######################################################################################################
 ### pico_installer.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
 ### @updated: 23-7-2017
 ### Script for installing PIco HV3.0A UPS
-	
+
+#add dtoverlay=pi3-disable-bt
+
+#reboot
+sudo systemctl stop bluetooth
+sleep 2
+sudo systemctl disable bluetooth
+sleep 2
+sudo systemctl disable hciuart
+sleep 2
+sudo systemctl stop serial-getty@ttyAMA0.service
+sleep 2
+sudo systemctl disable serial-getty@ttyAMA0.service
+sleep 2
+sudo i2cset -y 1 0x6b 0x00 0xff
+sleep 2
+sudo python picofu.py -v -f picofu_38.hex
+sleep 10
+sudo systemctl enable serial-getty@ttyAMA0.service
+sleep 2
+sudo systemctl start serial-getty@ttyAMA0.service
+sleep 2 
+sudo systemctl enable hciuart
+sleep 2
+sudo systemctl enable bluetooth
+sleep 2
+sudo systemctl start bluetooth	
 #######################################################################################################
 ### Do not edit anything below this line unless your knowing what to do!
 #######################################################################################################
