@@ -30,6 +30,7 @@ And takes care everything for you in order to be able to install all PIco UPS HV
 5. sudo bash /<file_location>/pico_installer.sh<br />
 6. Follow instructions...<br />
 <br />
+
 # Install guide via ftp and ssh
 1. Download a pre zipped .sh file from here<br />
 2. Unzip this zipped file and copy the content to your Raspberry Pi with any kind of ftp program<br />
