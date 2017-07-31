@@ -168,7 +168,7 @@ fi
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 kernel_version=$(uname -r | /usr/bin/cut -c 1-6)
 
-if [ $(version $kernel_version) -gt $(version "4.1") ] ; then
+if [ $(version $kernel_version) -ge $(version "4.9") ] || [ $(version $kernel_version) -ge $(version "4.4.50") ]; then
 	echo " -> Detected a compatible kernel version $kernel_version"
 else
 	echo " "
