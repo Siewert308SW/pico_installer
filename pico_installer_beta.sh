@@ -2,10 +2,10 @@
 
 ###############################################################################################################################################################	
 
-### pico_installer_beta.sh
+### pico_installer.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 26-7-2017
+### @updated: 31-7-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
@@ -43,17 +43,16 @@ if [[ $EUID -ne 0 ]]; then
 	echo " Script must be executed as root"
 	echo " Installer terminated!"
 	echo " "
-	exit
+	exit 0
 	else
 	echo " -> Script executed as root"
 fi
 
 grep=`dpkg-query -W -f='${Status}' grep 2>/dev/null | grep -c "ok installed"`
-pythonsmbus=`dpkg-query -W -f='${Status}' python-smbus 2>/dev/null | grep -c "ok installed"`
-git=`dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed"`
 lsbrelease=`dpkg-query -W -f='${Status}' lsb-release 2>/dev/null | grep -c "ok installed"`
+unzipper=`dpkg-query -W -f='${Status}' unzip 2>/dev/null | grep -c "ok installed"`
 
-if [ $grep -ne 1 ] || [ $pythonsmbus -ne 1 ] || [ $git -ne 1 ] || [ $lsbrelease -ne 1 ] ; then
+if [ $grep -ne 1 ] || [ $lsbrelease -ne 1 ] ; then
 	echo " "	
 	echo "::: PIco UPS HV3.0A Installer Necessities Missing"
 	echo "---------------------------------------------------"
@@ -64,15 +63,12 @@ if [ $grep -ne 1 ] || [ $pythonsmbus -ne 1 ] || [ $git -ne 1 ] || [ $lsbrelease 
 	echo " Missing Packages:"
 	if [ $grep -ne 1 ] ; then
 	echo " -> grep is missing"
-	fi
-	if [ $pythonsmbus -ne 1 ] ; then
-	echo " -> python-smbus is missing"
-	fi
-	if [ $git -ne 1 ] ; then
-	echo " -> git is missing"
 	fi	
 	if [ $lsbrelease -ne 1 ] ; then
 	echo " -> lsb-release is missing"
+	fi
+	if [ $unzipper -ne 1 ] ; then
+	echo " -> unzip is missing"
 	fi
 	
 	read -p " Continue? (y/n)" CONT
@@ -83,19 +79,14 @@ if [ $grep -ne 1 ] || [ $pythonsmbus -ne 1 ] || [ $git -ne 1 ] || [ $lsbrelease 
 		apt-get install -y grep > /dev/null 2>&1
 	fi
 
-	if [ $pythonsmbus -ne 1 ]; then
-		echo " -> installing python-smbus package"
-		apt-get install -y python-smbus > /dev/null 2>&1
-	fi
-
-	if [ $git -ne 1 ]; then
-		echo " -> installing git package"
-		apt-get install -y git > /dev/null 2>&1
-	fi
-
 	if [ $lsbrelease -ne 1 ]; then
 		echo " -> installing lsb-release package"
 		apt-get install -y lsb-release > /dev/null 2>&1
+	fi
+
+	if [ $unzipper -ne 1 ]; then
+		echo " -> installing unzip package"
+		apt-get install -y unzip > /dev/null 2>&1
 	fi
 	
 	else
@@ -105,7 +96,7 @@ if [ $grep -ne 1 ] || [ $pythonsmbus -ne 1 ] || [ $git -ne 1 ] || [ $lsbrelease 
 	echo " Thx $user for using PIco HV3.0A Installer"
 	echo " Installer terminated!"
 	echo " "	
-	exit
+	exit 0
 	fi
 fi
 				
@@ -120,7 +111,7 @@ if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
 	echo " Instal script detected you are using $release"
 	echo " Installer terminated!"
 	echo " "
-	exit
+	exit 0
 	else
 	echo " -> Detected a compatible version of $release"
 fi
@@ -136,7 +127,7 @@ if [ "$rpiversion" != "Raspberry Pi 3 Model B Rev 1.2" ]; then
 	echo " Install script detected you are using $rpiversion"
 	echo " Installer terminated!"
 	echo " "
-	exit
+	exit 0
 	else
 	echo " -> Detected a compatible $rpiversion"	
 fi
@@ -156,7 +147,7 @@ else
 	echo " Install script detected you are using $kernel_version"
 	echo " Installer terminated!"
 	echo " "
-	exit	
+	exit 0	
 fi
 
 ### Checking for a working internet connection
@@ -172,7 +163,7 @@ else
 	echo " please make sure your internet connection is working"
 	echo " Installer terminated!"
 	echo " "
-	exit
+	exit 0
 fi	
 sleep 1
 echo " "
@@ -184,8 +175,11 @@ echo " "
 		echo "::: PIco UPS HV3.0A Install Menu"
 		echo "------------------------------------------------------------------------"
 		echo " "
-		options=("Install - PIco HV3.0A" "Remove - PIco HV3.0A" "Status - PIco HV3.0A" "Quit")
+ while true
+ do
+		options=("Install - PIco HV3.0A" "Remove  - PIco HV3.0A" "Status  - PIco HV3.0A" "Upgrade - PIco HV3.0A" "Config  - PIco HV3.0A" "Quit")
 		COLUMNS=12
+
 		select opt in "${options[@]}"
 		
 		do
@@ -208,7 +202,7 @@ echo " "
 				echo " 1. Install your PIco UPS board before continuing"
 				echo " 2. This script is only intended for Raspberry Pi 3 Model B Rev 1.2"
 				echo " 3. Use a clean Rasbian Jessie 8.0 installation"
-				echo "   Or a installation which hasn't seen a previously installed PIco daemon "
+				echo "    Or a installation which hasn't seen a previously installed PIco daemon "
 				echo " 4. Latest 4.4.50 or 4.9 kernel"
 				echo " 5. Preflashed PIco firmware 0x30 or higher"	
 				echo " 6. Set correct timezone in raspi-config"
@@ -228,7 +222,7 @@ echo " "
 				echo " Thx $user for using PIco HV3.0A Installer"
 				echo " Installer terminated!"
 				echo " "	
-				exit
+				exit 0
 				fi
 
 				echo " "
@@ -236,11 +230,11 @@ echo " "
 				echo "------------------------------------------------------------------------"
 				sleep 1
 
-				### Checking if there's a previous PIco service running
+				### Checking if there's a PIco service active
 				picoserviceactive=`service picofssd status | grep Active | awk {'print $2'}`
 
 				if [ "$picoserviceactive" == "active" ] ; then
-					echo " -> Script detected a previous running PIco service"
+					echo " -> Script detected a active PIco service"
 					echo " "
 					echo "::: Installer terminated!"
 					echo "------------------------------------------------------------------------"
@@ -248,42 +242,42 @@ echo " "
 					echo " Looks like you already installed a PIco daemon"
 					echo " As there is a daemon active"		
 					echo " As advised you should use this installer on a clean Rasbian 8.0 jessie clean/fresh install"
-					echo " You could use the Removal menu option to remove all necessities"
+					echo " You could use the removal menu option to remove all necessities"
 					echo " Or use a fresh Rasbian 8.0 jessie installation"	
 					echo " "
 					echo " Installer terminated!"
-					exit
+					exit 0
 				else
-					echo " -> no PIco service running, step skipped"
+					echo " -> no PIco service active, step skipped"
 					
 				fi
 				sleep 1
 
-				### Checking if there's a previous PIco daemon running
+				### Checking if there's a PIco daemon active
 				picodaemon="/usr/local/bin/picofssd"
 				if [ -f $picodaemon ] ; then
-					echo " -> Script detected a previous PIco daemon"
+					echo " -> Script detected a active PIco daemon"
 					echo " "
 					echo "::: Installer terminated!"
 					echo "------------------------------------------------------------------------"
 					echo " "
 					echo " Looks like you already installed a PIco daemon"
 					echo " Script found some previous PIco UPS leftovers"
-					echo " You could use the Removal menu option to remove all necessities"
+					echo " You could use the removal menu option to remove all necessities"
 					echo " Or use a fresh Rasbian 8.0 jessie installation"	
 					echo " "
 					echo " Installer terminated!"
 					echo " "
-					exit	
+					exit 0	
 				else
 					echo " -> no PIco daemon detected, step skipped"	
 				fi	
 				sleep 1
 
-				### Checking if there's a previous PIco init file loaded
+				### Checking if there's a PIco init file loaded
 				picoinit="/etc/init.d/picofssd"	
 				if [ -f $picoinit ] ; then
-					echo " -> Script detected a previous PIco init file"
+					echo " -> Script detected a PIco init file"
 					echo " "
 					echo "::: Installer terminated!"
 					echo "------------------------------------------------------------------------"
@@ -295,7 +289,7 @@ echo " "
 					echo " "
 					echo " Installer terminated!"
 					echo " "
-					exit	
+					exit 0	
 				else
 					echo " -> no PIco init file detected, step skipped"	
 				fi	
@@ -308,7 +302,7 @@ echo " "
 				picofile4="/usr/local/lib/python2.7/dist-packages/pimodules/picofssd-0.1dev-py2.7.egg-info"			
 				picofile5="/etc/default/picofssd"				
 				if [ -f $picofile1 ] || [ -f $picofile2 ] || [ -f $picofile3 ] || [ -f $picofile4 ] || [ -f $picofile5 ]; then
-					echo " -> Script detected serveral previous PIco UPS leftovers"
+					echo " -> Script detected serveral PIco UPS leftovers"
 					echo " "
 					echo "::: Installer terminated!"
 					echo "------------------------------------------------------------------------"
@@ -320,7 +314,7 @@ echo " "
 					echo " "
 					echo " Installer terminated!"
 					echo " "
-					exit	
+					exit 0	
 				else
 					echo " -> no PIco leftovers found, step skipped"	
 				fi	
@@ -587,22 +581,22 @@ echo " "
 				echo " Thx $user for using PIco HV3.0A Installer"
 				echo " "	
 				echo " PIco UPS HV3.0a installation finished"
-				echo " If no errors occured then everything should be up and running"
+				echo " If no errors occured then everything should be up and active"
 				echo " "
 				echo " System will be rebooted in 15 seconds to let every changed be activated and loaded"
 				echo " "
 				sleep 15
 				reboot
-				break			
+						
 					;;
 #######################################################################################################
 ### MENU OPTION 1: END
 #######################################################################################################					
-				"Remove - PIco HV3.0A")
+				"Remove  - PIco HV3.0A")
 #######################################################################################################
 ### MENU OPTION 2: PIco UPS HV3.0A removal
 #######################################################################################################
-	
+				clear
 				pythonrpigpio=`dpkg-query -W -f='${Status}' python-rpi.gpio 2>/dev/null | grep -c "ok installed"`
 				git=`dpkg-query -W -f='${Status}' git 2>/dev/null | grep -c "ok installed"`
 				pythondev=`dpkg-query -W -f='${Status}' python-dev 2>/dev/null | grep -c "ok installed"`
@@ -638,12 +632,23 @@ echo " "
 				echo " There for you will be asked if you want to remove them..."
 				echo " "
 
-				read -p " Press enter to continue..."
+	read -p " Continue? (y/n)" CONT
+	if [ "$CONT" = "y" ]; then
+	echo " "
+	else
 				echo " "
+				echo " "	
+				echo "::: PIco UPS HV3.0A Removal Terminated"
+				echo "---------------------------------------------------"
+				echo " Thx $user for using PIco HV3.0A Removal tools"
+				echo " Removal tool terminated!"
+				echo " "	
+				exit 0
+	fi
 				sleep 1
 				echo "::: PIco UPS HV3.0A Uninstalling daemons and modules"
 				echo "------------------------------------------------------------------------"
-				### Checking if there's a PIco service running
+				### Checking if there's a PIco service active
 				picoserviceactive=`service picofssd status | grep Active | awk {'print $2'}`
 
 				if [ "$picoserviceactive" == "active" ] ; then
@@ -656,7 +661,7 @@ echo " "
 				sleep 1
 
 
-				### Checking if there's a PIco daemon running
+				### Checking if there's a PIco daemon active
 				picodaemon="/usr/local/bin/picofssd"
 				if [ -f $picodaemon ] ; then
 					echo " -> PIco daemon removed"
@@ -912,9 +917,7 @@ echo " "
 					rm -rf /usr/local/lib/python2.7/dist-packages/pimodules-0.1dev.egg-info
 					rm -rf /usr/local/lib/python2.7/dist-packages/pimodules
 					rm -rf /etc/default/picofssd
-					if [ $pythonrpigpio -eq 0 ] || [ $git -eq 0 ] || [ $pythondev -eq 0 ] || [ $pythonserial -eq 0 ] || [ $pythonsmbus -eq 0 ] || [ $pythonjinja2 -eq 0 ] || [ $pythonxmltodict -eq 0 ] || [ $pythonpsutil -eq 0 ] || [ $pythonpip -eq 0 ] || [ $i2ctools -eq 0 ]; then	
 					apt-get autoremove -y > /dev/null 2>&1
-					fi
 					echo " Done..."
 					sleep 1
 
@@ -929,19 +932,12 @@ echo " "
 						echo " "	
 						echo " PIco UPS HV3.0a removal finished"
 						echo " If no errors occured then everything has been removed or disabled"
-						
-						if [ "$raspii2c" == "#dtparam=i2c_arm=on" ] && [ "$raspiuart" == "#enable_uart=1" ] && [ "$rtcmodule" == "#dtoverlay=i2c-rtc,ds1307" ] && [ "$bcmmodule" == "#i2c-bcm2708" ] && [ "$rtcmoduleold" == "#rtc-ds1307" ] && [ "$rtcmoduleold2" == "#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ] && [ "$i2cmodule" == "#i2c-dev" ] ; then
-						echo " After the system has been reboot then your able to shutdown the system and remove the PIco board"
+						echo " After the system has been rebooteded then your able to shutdown the system and remove the PIco board"
 						echo " "
 						echo " System will be rebooted in 15 seconds..."
 						echo " "		
 						sleep 15
 						reboot
-						else
-						echo " "
-						echo " Removal tool finished and terminated..."		
-						echo " "						
-						fi
 					else
 						echo " "
 						echo "::: PIco UPS HV3.0A removal terminated"
@@ -956,21 +952,20 @@ echo " "
 						echo " Removal tool finished and terminated..."		
 						echo " "
 						sleep 1	
-						exit
+						
 					fi	
-					break			
+						exit 0		
 					;;
 #######################################################################################################
 ### MENU OPTION 2: END
 #######################################################################################################					
-				"Status - PIco HV3.0A")
+				"Status  - PIco HV3.0A")
 #######################################################################################################
 ### MENU OPTION 3: PIco UPS HV3.0A Status
 #######################################################################################################
-	
+				clear
 				picoserviceactive=`service picofssd status | grep Active | awk {'print $2'}`
-
-			if [ "$picoserviceactive" != "active" ] ; then
+				if [ "$picoserviceactive" != "active" ] ; then
 
 				echo " "
 				echo "::: UPS PIco HV3.0A Status"
@@ -981,12 +976,12 @@ echo " "
 				echo " -> PIco PCB Version.......: n/a"
 				echo " -> PIco BAT Version.......: n/a"
 				echo " "
-				echo " -> No PIco service or daemon running, please install first..."				
+				echo " -> No PIco service or daemon active, please install first..."				
 				echo "---------------------------------------------------"
 				echo " "
-				exit
+				exit 0
 			else	
-				
+			
 				picostatus="pico_status/pico_status.py"
 				if [ -f $picostatus ] ; then
 				chmod +x pico_status/pico_status.py
@@ -1004,10 +999,348 @@ echo " "
 					;;
 #######################################################################################################
 ### MENU OPTION 3: END
-#######################################################################################################					
+#######################################################################################################
+				"Upgrade - PIco HV3.0A")
+#######################################################################################################
+### MENU OPTION 4: PIco UPS HV3.0A Firmware Upgrade
+#######################################################################################################
+				clear
+				picobtreboot="pico_bt_reboot.conf"
+				picouartreboot="pico_uart_reboot.conf"
+				picoreboot="pico_reboot.conf"
+				picogettystatus="pico_getty_status.conf"
+				picofufolder="pico_firmware_master/picofu.py"				
+				echo " "
+				echo "::: PIco UPS HV3.0A Firmware update check"
+				echo "------------------------------------------------------------------------"
+				echo " "
+				### Checking if there's a PIco service active
+				picoserviceactive=`service picofssd status | grep Active | awk {'print $2'}`
+				if [ "$picoserviceactive" == "active" ] ; then
+					echo " -> PIco UPS service active"
+				else
+                systemctl start picofssd 2>/dev/null					
+				fi
+				sleep 1
+				
+				if [ "$picoserviceactive" != "active" ] ; then
+					echo " -> PIco UPS service couldn't be activated"
+					echo " "
+					echo "::: Installer terminated!"
+					echo "------------------------------------------------------------------------"
+					echo " "
+					echo " Looks like you didn't install your PIco unit"
+					echo " Or some how it aint detectable"		
+					echo " Please execute a full installation before trying to upgrade"	
+					echo " "
+					echo " Installer terminated!"
+					exit 0
+				else
+				echo " -> PIco UPS service activated"	
+				fi
+				sleep 1				
+				
+				### Checking if PIco is online
+				picoonline=`sudo i2cget -y 1 0x6b 0x00 | grep -c "0x00"`
+				
+				if [ $picoonline -eq 1 ]; then
+				echo " -> PIco UPS detected"
+				else
+					echo " -> PIco UPS isn't detected"
+					echo " "
+					echo "::: Installer terminated!"
+					echo "------------------------------------------------------------------------"
+					echo " "
+					echo " Looks like you didn't install your PIco unit"
+					echo " Or some how it aint detectable"		
+					echo " Please execute a full installation before trying to upgrade"	
+					echo " "
+					echo " Installer terminated!"
+					exit 0					
+				sleep 1	
+				fi		
+				
+				### Checking if there's a PIco update available
+				if [ -f $picofufolder ] ; then	
+				rm -rf pico_firmware_master 
+				wget http://www.siewert-lameijer.nl/pico_firmware/pico_firmware.zip 2>/dev/null
+				unzip -q pico_firmware.zip
+				rm -rf pico_firmware.zip
+				else
+				wget http://www.siewert-lameijer.nl/pico_firmware/pico_firmware.zip 2>/dev/null
+				unzip -q pico_firmware.zip
+				rm -rf pico_firmware.zip
+				fi
+				
+				picoversion=`sudo i2cget -y 1 0x69 0x26 | /usr/bin/cut -d "x" -f 2`				
+				picoupdatecheck=`ls pico_firmware_master | grep UPS | tail -1 | /usr/bin/cut -d "_" -f 1 | /usr/bin/cut -d "x" -f 2`
+				piconewfirmware=`ls pico_firmware_master | grep UPS | tail -1`
+				if [ $picoupdatecheck -gt $picoversion ]; then
+					echo " -> PIco UPS firmware update available"
+					echo " "	
+					echo "::: PIco UPS HV3.0A Firmware update available"
+					echo "---------------------------------------------------"
+					echo " Current version: 0x"$picoversion
+					echo " Update version : 0x"$picoupdatecheck					
+					
+					read -p " Continue upgrading firmware? (y/n)" CONT
+					if [ "$CONT" = "y" ]; then
+					echo " "
+					else
+					echo " "	
+					echo "::: PIco UPS HV3.0A Firmware upgrade terminated"
+					echo "---------------------------------------------------"
+					echo " Thx $user for using PIco HV3.0A Installer script"
+					echo " Installer terminated!"
+					echo " "
+					if [ -f $picofufolder ] ; then	
+					rm -rf pico_firmware_master
+					rm -rf pico_firmware.zip
+					fi					
+					exit 0		
+					fi					
+				else
+				clear
+					echo " -> No PIco UPS firmware update available"
+					echo " "
+					echo "::: Installer terminated!"
+					echo "------------------------------------------------------------------------"
+					echo " "
+					echo " Looks like there isn't a update available"
+					echo " Could be PiModules didn't release a update"
+					echo " Or the script database hasn't been updated yet"
+					echo " I advise you to checkin again later"	
+					echo " "
+					echo " Installer terminated!"
+					if [ -f $picofufolder ] ; then	
+					rm -rf pico_firmware_master
+					rm -rf pico_firmware.zip
+					fi					
+					break	
+				fi
+				sleep 1
+			
+				### Checking bluetooth (dtoverlay=pi3-disable-bt) is disabled
+				btoverlay=`cat /boot/config.txt | grep dtoverlay=pi3-disable-bt`
+				if [ "$btoverlay" == "dtoverlay=pi3-disable-bt" ]; then
+					echo " -> dtoverlay=pi3-disable-bt already set to /boot/config.txt, step skipped"				
+				elif [ "$btoverlay" == "#dtoverlay=pi3-disable-bt" ]; then	
+					echo " -> dtoverlay=pi3-disable-bt set to /boot/config.txt"
+					sed -i "s,$btoverlay,dtoverlay=pi3-disable-bt," /boot/config.txt
+					touch $picobtreboot
+					touch $picoreboot
+				else
+					echo " -> dtoverlay=pi3-disable-bt set to /boot/config.txt"
+					sh -c "echo 'dtoverlay=pi3-disable-bt' >> /boot/config.txt"	
+					touch $picobtreboot
+					touch $picoreboot
+				fi
+				sleep 1
+
+				### Checking serial uart (enable_uart=1) is enabled
+				raspiuart=`cat /boot/config.txt | grep enable_uart`
+				if [ "$raspiuart" == "enable_uart=1" ]; then
+					echo " -> enable_uart already set to /boot/config.txt, step skipped"	
+				elif [ "$raspiuart" == "#enable_uart=1" ]; then	
+					echo " -> enable_uart set to /boot/config.txt"
+					sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+					touch $picouartreboot
+					touch $picoreboot
+				elif [ "$raspiuart" == "#enable_uart=0" ]; then	
+					echo " -> enable_uart set to /boot/config.txt"
+					sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+					touch $picouartreboot
+					touch $picoreboot	
+				elif [ "$raspiuart" == "enable_uart=0" ]; then	
+					echo " -> enable_uart set to /boot/config.txt"
+					sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+					touch $picouartreboot
+					touch $picoreboot	
+				else
+					echo " -> enable_uart set to /boot/config.txt"
+					sh -c "echo 'enable_uart=1' >> /boot/config.txt"
+					touch $picouartreboot
+					touch $picoreboot
+				fi
+				sleep 1
+				
+				### Reboot system if uart is enabled or BT is disabled
+				if [ -f $picoreboot ]; then
+
+				if [ -f $picobtreboot ] ; then
+				rebootbttxt="Bluetooth"
+				rebootbttxt2="Bluetooth has been temporally disabled"
+				fi
+				if [ -f $picouartreboot ] ; then
+				rebootuarttxt="and Serial Console"
+				rebootuarttxt2="And Serial Console has been temporally enabled"
+				fi
+					echo " "				
+					echo "::: PIco UPS HV3.0A $rebootbttxt $rebootuarttxt set"
+					echo "---------------------------------------------------"
+					echo " $rebootbttxt2"
+					echo " $rebootuarttxt2"
+					echo " It's mandatory otherwise you can't upgrade firmware"
+					echo " Your system has to be rebooted so it really gets propperly set"
+					echo " After your system has been rebooted then please checkin again to continue upgrading your firmware"	
+					echo " "
+					read -p " Continue rebooting your system? (y/n)" CONT
+					if [ "$CONT" = "y" ]; then
+					echo " "	
+					echo "::: PIco UPS HV3.0A System reboot"
+					echo "---------------------------------------------------"
+					echo " After reboot then please continue the upgrade process"
+					echo " System reboot in 10 seconds!"
+					echo " "
+					rm -rf $picoreboot
+					sleep 10
+					reboot
+					exit 0
+					else
+					echo " "	
+					echo "::: PIco UPS HV3.0A Firmware upgrade terminated"
+					echo "---------------------------------------------------"
+					echo " Thx $user for using PIco HV3.0A upgrade script"
+					echo " Please reboot your system in order to set $rebootbttxt2 $rebootuarttxt2"
+					echo " It's mandatory otherwise you can't upgrade firmware"				
+					echo " After your system has been rebooted then please continue the upgrade process"
+					echo " "
+					echo " Installer terminated!"
+					echo " "
+				
+					if [ -f $picofufolder ] ; then	
+					rm -rf pico_firmware_master
+					rm -rf pico_firmware.zip
+					fi					
+					exit 0		
+					fi	
+				fi
+
+				picobtactive=`systemctl status bluetooth 2>/dev/null`					
+				if [ "$picobtactive" == "active" ] ; then	
+					echo " "	
+					echo "::: PIco UPS HV3.0A Firmware upgrade terminated"
+					echo "---------------------------------------------------"
+					echo " Thx $user for using PIco HV3.0A upgrade script"
+					echo " Please disable Bluetooth (dtoverlay=pi3-disable-bt)"
+					echo " It's mandatory otherwise you can't upgrade firmware"
+					echo " If you amended your /boot/config.txt manually then please reboot your system"						
+					echo " After your system has been rebooted then please continue the upgrade process"
+					echo " "
+					echo " Installer terminated!"
+					echo " "
+					exit 0
+					if [ -f $picofufolder ] ; then	
+					rm -rf pico_firmware_master
+					rm -rf pico_firmware.zip
+					fi						
+				fi			
+				
+				### Checking if getty is active then stop and disable
+				gettyserviceactive=`service serial-getty@ttyAMA0.service status | grep Active | awk {'print $2'}`
+				if [ "$picoserviceactive" == "active" ] ; then
+				echo " -> serial-getty@ttyAMA0 active, getty stopped and disabled"
+				systemctl stop serial-getty@ttyAMA0.service 2>/dev/null
+				sleep 1
+				systemctl disable serial-getty@ttyAMA0.service 2>/dev/null
+				touch $picogettystatus
+				else
+				echo " -> serial-getty@ttyAMA0 not active, step skipped"					
+				fi
+				sleep 1				
+
+				echo " -> Invoking PIco bootloader"
+				i2cset -y 1 0x6b 0x00 0xff
+				sleep 5
+				echo " -> Starting PIco firmware upgrade"				
+				cd pico_firmware_master
+				python picofu.py -v -f $piconewfirmware
+				cd $dir
+				rm -rf pico_firmware_master
+				rm -rf pico_firmware.zip
+				sleep 10
+
+				### Checking if getty was active earlier then enable and restart it				
+				if [ -f $picogettystatus ] ; then
+				echo " -> serial-getty@ttyAMA0 enabled and restarted"
+				systemctl enable serial-getty@ttyAMA0.service 2>/dev/null
+				sleep 1
+				systemctl start serial-getty@ttyAMA0.service 2>/dev/null
+				sleep 1 
+				rm -rf $picogettystatus
+				else
+				echo " -> serial-getty@ttyAMA0 wasn't active, step skipped"					
+				fi
+				sleep 1				
+			
+				### Checking if bluetooth and uart where active earlier then enable and restart it
+				if [ -f $picobtreboot ] ; then
+				if [ "$btoverlay" == "dtoverlay=pi3-disable-bt" ]; then
+					echo " -> dtoverlay=pi3-disable-bt disabled in /boot/config.txt"
+					sed -i "s,$btoverlay,#dtoverlay=pi3-disable-bt," /boot/config.txt
+					rm -rf $picobtreboot
+				fi 
+				fi
+				
+				if [ -f $picouartreboot ] ; then
+				if [ "$raspiuart" == "enable_uart=1" ]; then	
+					echo " -> enable_uart enabled in /boot/config.txt"
+					sed -i "s,$raspiuart,#enable_uart=1," /boot/config.txt
+					rm -rf $picouartreboot					
+				fi 
+				fi
+
+					if [ -f $picofufolder ] ; then	
+					rm -rf pico_firmware_master
+					rm -rf pico_firmware.zip
+					fi				
+
+				#######################################################################################################
+				### PIco UPS HV3.0A firmware upgrade finished
+				#######################################################################################################
+				echo " "
+				echo "::: PIco UPS HV3.0A firmware upgrade finished"
+				echo "------------------------------------------------------------------------"
+				echo " "
+				echo " Thx $user for using PIco HV3.0A Installer"
+				echo " "	
+				echo " PIco UPS HV3.0a firmware has been upgrade to version 0x"$picoversion
+				echo " If no errors occured then everything should be up and running"
+				echo " System will be rebooted in 10 seconds"
+				echo " "
+				echo " Enjoy and have a nice day..."
+				echo " "
+				sleep 10
+				reboot
+					;;
+#######################################################################################################
+### MENU OPTION 4: END
+#######################################################################################################
+				"Config  - PIco HV3.0A")
+#######################################################################################################
+### MENU OPTION 5: PIco UPS HV3.0A Config
+#######################################################################################################
+				clear
+				echo " "
+				echo "::: PIco UPS HV3.0A Configuration"
+				echo "------------------------------------------------------------------------"
+				echo " "
+				echo " Thx $user for using PIco HV3.0A Installer"
+				echo " "	
+				echo " Unfortunally this option isn't available yet"
+				echo " I'm working on it, as we speak ;-)"
+				echo " "
+				echo " Enjoy and have a nice day..."
+				echo " "
+				break
+					;;
+#######################################################################################################
+### MENU OPTION 5: END
+#######################################################################################################
+					
 				"Quit")
 #######################################################################################################
-### MENU OPTION 4: PIco UPS HV3.0A Quit
+### MENU OPTION 6: PIco UPS HV3.0A Quit
 #######################################################################################################				
 				echo " "
 				echo " "	
@@ -1016,9 +1349,11 @@ echo " "
 				echo " Thx $user for using PIco HV3.0A Installer"
 				echo " Installer terminated!"
 				echo " "	
+				exit 0
 
-					break
 					;;
 				*) echo invalid option;;
-			esac			
-		done
+     esac
+ done
+ done
+ 
