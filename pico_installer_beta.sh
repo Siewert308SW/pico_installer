@@ -48,6 +48,23 @@ if [[ $EUID -ne 0 ]]; then
 	echo " -> Script executed as root"
 fi
 
+### Checking free space available
+freespacecheck=`df -k | grep "root" | awk '{print $4}'`
+freespacefriendly=`df -h | grep "root" | awk '{print $4}'`
+if [ $freespacecheck -lt 299040 ] ; then
+	echo " "	
+	echo "::: PIco UPS HV3.0A Installer Free Space"
+	echo "---------------------------------------------------"
+	echo " Dear $user,"
+	echo " Looks like your sd-card doesn't have enough free space"
+	echo " You need at least 300Mb of free space in order to install all necessities"
+	echo " "
+	echo " Installer terminated!"
+	echo " "
+	exit 0
+	else
+	echo " -> Enough freespace: you have atleast $freespacefriendly left"
+fi
 grep=`dpkg-query -W -f='${Status}' grep 2>/dev/null | grep -c "ok installed"`
 lsbrelease=`dpkg-query -W -f='${Status}' lsb-release 2>/dev/null | grep -c "ok installed"`
 unzipper=`dpkg-query -W -f='${Status}' unzip 2>/dev/null | grep -c "ok installed"`
@@ -73,6 +90,21 @@ if [ $grep -ne 1 ] || [ $lsbrelease -ne 1 ] ; then
 	
 	read -p " Continue? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
+
+				if [ $grep -ne 1 ] || [ $lsbrelease -ne 1 ] || [ $unzipper -ne 1 ] ; then
+				echo " "
+				echo "::: sourcelist update"
+				echo "------------------------------------------------------------------------"
+					echo " -> Executing apt-get update"
+					echo " -> This could take a awhile"	
+					echo " -> Please Standby!"
+					sleep 1
+					apt-get update > /dev/null 2>&1
+					echo " "	
+					echo " -> Sourcelist updated!"	
+				sleep 1
+				fi
+				
 	echo " "	
 	if [ $grep -ne 1 ]; then
 		echo " -> installing grep package"
@@ -136,15 +168,18 @@ fi
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 kernel_version=$(uname -r | /usr/bin/cut -c 1-6)
 
-if [ $(version $kernel_version) -ge $(version "4.9") ] || [ $(version $kernel_version) -ge $(version "4.4.50") ]; then
+if [ $(version $kernel_version) -gt $(version "4.1") ] ; then
 	echo " -> Detected a compatible kernel version $kernel_version"
 else
 	echo " "
 	echo "::: Installer terminated!"
 	echo "------------------------------------------------------------------------"
 	echo " "
-	echo " Installer is intended for kernel version 4.4.50 or higher"
+	echo " Installer is intended for kernel version 4.1 or higher"
 	echo " Install script detected you are using $kernel_version"
+	echo " If you want to use this script then make sure you update your kernel"
+	echo " By conducting apt-get update && apt-get dist-upgrade..."	
+	echo " "	
 	echo " Installer terminated!"
 	echo " "
 	exit 0	
@@ -1041,7 +1076,7 @@ echo " "
 				sleep 1				
 				
 				### Checking if PIco is online
-				picoonline=`sudo i2cget -y 1 0x6b 0x00 | grep -c "0x00"`
+				picoonline=`i2cget -y 1 0x6b 0x00 | grep -c "0x00"`
 				
 				if [ $picoonline -eq 1 ]; then
 				echo " -> PIco UPS detected"
@@ -1072,7 +1107,7 @@ echo " "
 				rm -rf pico_firmware.zip
 				fi
 				
-				picoversion=`sudo i2cget -y 1 0x69 0x26 | /usr/bin/cut -d "x" -f 2`				
+				picoversion=`i2cget -y 1 0x69 0x26 | /usr/bin/cut -d "x" -f 2`				
 				picoupdatecheck=`ls pico_firmware_master | grep UPS | tail -1 | /usr/bin/cut -d "_" -f 1 | /usr/bin/cut -d "x" -f 2`
 				piconewfirmware=`ls pico_firmware_master | grep UPS | tail -1`
 				if [ $picoupdatecheck -gt $picoversion ]; then
