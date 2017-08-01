@@ -5,7 +5,7 @@
 ### pico_installer.sh
 ### @author	: Siewert Lameijer
 ### @since	: 21-3-2017
-### @updated: 31-7-2017
+### @updated: 1-8-2017
 ### Script for installing PIco HV3.0A UPS
 	
 #######################################################################################################
@@ -58,6 +58,8 @@ if [ $freespacecheck -lt 299040 ] ; then
 	echo " Dear $user,"
 	echo " Looks like your sd-card doesn't have enough free space"
 	echo " You need at least 300Mb of free space in order to install all necessities"
+	echo " At the moment you have $freespacefriendly left"
+	echo " Please extend your filesystem or get a bigger sd-card"
 	echo " "
 	echo " Installer terminated!"
 	echo " "
@@ -168,7 +170,7 @@ fi
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 kernel_version=$(uname -r | /usr/bin/cut -c 1-6)
 
-if [ $(version $kernel_version) -ge $(version "4.9") ] || [ $(version $kernel_version) -ge $(version "4.4.50") ]; then
+if [ $(version $kernel_version) -ge $(version "4.1") ] ; then
 	echo " -> Detected a compatible kernel version $kernel_version"
 else
 	echo " "
@@ -238,10 +240,9 @@ echo " "
 				echo " 2. This script is only intended for Raspberry Pi 3 Model B Rev 1.2"
 				echo " 3. Use a clean Rasbian Jessie 8.0 installation"
 				echo "    Or a installation which hasn't seen a previously installed PIco daemon "
-				echo " 4. Latest 4.4.50 or 4.9 kernel"
-				echo " 5. Preflashed PIco firmware 0x30 or higher"	
-				echo " 6. Set correct timezone in raspi-config"
-				echo " 7. It's advised to make a backup of your sdcard first before continuing"
+				echo " 4. Compatible 4.1 kernel or higher"	
+				echo " 5. Set correct timezone in raspi-config"
+				echo " 6. It's advised to make a backup of your sdcard first before continuing"
 				echo " "
 				echo " Disclaimer:"
 				echo " I don't take any responsibility if your OS, Rpi or PIco board gets broken"
@@ -389,24 +390,50 @@ echo " "
 
 				### Checking for old rtc module load statement
 				rtcmoduleold=`cat /etc/modules | grep rtc-ds1307`
+				rtcmoduleold2=`cat /etc/rc.local | grep echo`
+				
+if [ $(version $kernel_version) -lt $(version "4.3") ] ; then	
 				if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-					echo " -> Wheezy rtc module detected, module disabled"
+					echo " -> old kernel rtc module already enabled, step skipped"
+				elif [ "$rtcmoduleold" == "#rtc-ds1307" ]; then
+					echo " -> old kernel rtc module enabled"
+					sed -i "s,$rtcmoduleold,rtc-ds1307," /etc/modules				
+				else
+					echo " -> old kernel rtc module enabled"
+					sh -c "echo 'rtc-ds1307' >> /etc/modules"
+				fi
+				sleep 1
+				
+				### Checking for old kernel rtc statement in rc.local
+				if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
+					echo " -> old kernel rtc rc.local statement already enabled, step skipped"
+				elif [ "$rtcmoduleold2" == "#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then 		
+					echo " -> old kernel rtc rc.local statement enabled"
+					sed -i "s,$rtcmoduleold2,echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local
+				else
+					echo " -> old kernel rtc rc.local statement enabled"
+					sed -i 's/\exit 0//g' /etc/rc.local
+					echo "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &"  >> /etc/rc.local
+					sh -c "echo 'exit 0' >> /etc/rc.local"
+				fi	
+else				
+				if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
+					echo " -> old kernel rtc module detected, module disabled"
 					sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules	
 				else
-					echo " -> no Wheezy rtc module statement detected, step skipped"
+					echo " -> no old kernel rtc module statement detected, step skipped"
 				fi
 				sleep 1
 
-				### Checking for Wheezy rtc statement in rc.local
-				rtcmoduleold2=`cat /etc/rc.local | grep echo`
+				### Checking for old kernel rtc statement in rc.local
 				if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-					echo " -> Wheezy rtc rc.local statement detected, statement disabled"
+					echo " -> old kernel rtc rc.local statement detected, statement disabled"
 					sed -i "s,$rtcmoduleold2,#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local	
 				else
-					echo " -> no Wheezy rtc rc.local statement, step skipped"
+					echo " -> no old kernel rtc rc.local statement, step skipped"
 				fi
 				sleep 1
-
+				
 				### Checking if rtc dtoverlay module is loaded
 				rtcmodule=`cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
 				if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
@@ -419,6 +446,8 @@ echo " "
 					sh -c "echo 'dtoverlay=i2c-rtc,ds1307' >> /boot/config.txt"
 				fi
 				sleep 1
+				
+fi
 
 				### Checking if i2c-bcm2708 module is loaded
 				bcmmodule=`cat /etc/modules | grep i2c-bcm2708`
@@ -777,14 +806,14 @@ echo " "
 				### Checking for old rtc module load statement
 				if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
 					
-					read -p " -> disable Wheezy rtc module? (y/n)" CONT
+					read -p " -> disable old kernel rtc module? (y/n)" CONT
 					if [ "$CONT" = "y" ]; then
 
 					sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules
 					fi
 						
 				else
-					echo " -> Wheezy rtc module already disabled, step skipped"
+					echo " -> old kernel rtc module already disabled, step skipped"
 				sleep 1	
 				fi
 
@@ -792,14 +821,14 @@ echo " "
 				### Checking for old rtc load statement in rc.local
 				if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
 					
-					read -p " -> disable Wheezy rtc statement? (y/n)" CONT
+					read -p " -> disable old kernel rtc statement? (y/n)" CONT
 					if [ "$CONT" = "y" ]; then
 
 					sed -i -e 's/echo ds1307 0x68/#echo ds1307 0x68/g' /etc/rc.local
 					fi
 						
 				else
-					echo " -> Wheezy rtc statement in rc.local already disabled, step skipped"
+					echo " -> old kernel rtc statement in rc.local already disabled, step skipped"
 				sleep 1	
 				fi
 
