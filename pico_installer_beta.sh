@@ -229,7 +229,7 @@ fi
 	echo " "
 while true
 do
-options=("Install - PIco HV3.0A" "Remove  - PIco HV3.0A" "Status  - PIco HV3.0A" "Upgrade - PIco HV3.0A" "Config  - PIco HV3.0A" "Quit")
+options=("Install - PIco HV3.0A" "Remove  - PIco HV3.0A" "Status  - PIco HV3.0A" "Upgrade - PIco HV3.0A" "Config - PIco HV3.0A" "Quit")
 COLUMNS=12
 
 select opt in "${options[@]}"
@@ -1353,15 +1353,19 @@ fi
 	echo " "
 	echo " PIco UPS HV3.0a firmware has been upgrade to version 0x"$picoversion
 	echo " If no errors occured then everything should be up and running"
-	echo " System will be rebooted in 10 seconds"
+	echo " "
+	echo " CAUTION: PIco board has been factory reset"
+	echo " So if your using a battery other then 450mah then please set your desired battery type after reboot"
+	echo " "
+	echo " System will be rebooted in 15 seconds"
 	echo " "
 	echo " Enjoy and have a nice day..."
 	echo " "
-	sleep 10
+	sleep 15
 	reboot
 ;;
 
-"Config  - PIco HV3.0A")
+"Config - PIco HV3.0A")
 #######################################################################################################
 ### MENU OPTION 5: PIco UPS HV3.0A Configuration Script START
 #######################################################################################################
