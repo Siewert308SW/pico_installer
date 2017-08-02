@@ -5,7 +5,7 @@
 ### pico_installer.sh
 ### @author		: Siewert Lameijer
 ### @since		: 21-3-2017
-### @updated	: 2-8-2017
+### @updated	: 3-8-2017
 ### Script for installing PIco HV3.0A UPS
 
 #######################################################################################################
@@ -30,7 +30,13 @@ echo "
 		"
 	user=`whoami`
 	dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
-
+	releasedistro=`ls /DietPi 2>/dev/null | grep -c "dietpi.txt"`
+	if [ $releasedistro -eq 1 ] ; then
+		config="/DietPi/config.txt"
+	else
+		config="$config"
+	fi
+	
 ### PIco UPS HV3.0A installer script necessities check
 	echo "::: PIco UPS HV3.0A Installer Script Necessities Check"
 	echo "------------------------------------------------------------------------"
@@ -247,13 +253,19 @@ case $opt in
 	echo " You are about to install all necessities for your PIco HV3.0A UPS series"
 	echo " There are some precautions and necessities to install"
 	echo " Most of them are done by the install script"
+	echo " "
+	echo " Supported OS versions:"
+	echo " - Rasbian Jessie 8.0"
+	echo " - Minibian"
+	echo " - Ubuntu 16.04.2 LTS"
+	echo " - DietPi"
+	echo " "
 	echo " Below a list with precautions you've to take care of"
 	echo " "
 	echo " Precautions:"
 	echo " 1. Install your PIco UPS board before continuing"
 	echo " 2. This script is only intended for Raspberry Pi 3 Model B Rev 1.2"
-	echo " 3. Use a clean Rasbian Jessie 8.0, Minibian or Ubuntu 16.04.2 LTS installation"
-	echo "    Or a installation which hasn't seen a previously installed PIco daemon "
+	echo " 3. Use a clean or fresh OS installation"
 	echo " 4. Compatible 4.1 kernel or higher"
 	echo " 5. Preflashed PIco firmware 0x30 or higher"
 	echo " 6. Set correct timezone in raspi-config"
@@ -299,7 +311,7 @@ if [ "$picoserviceactive" == "active" ] ; then
 	echo " As there is a daemon active"
 	echo " As advised you should use this installer on a clean Rasbian 8.0 jessie clean/fresh install"
 	echo " You could use the removal menu option to remove all necessities"
-	echo " Or use a fresh Rasbian 8.0 jessie installation"
+	echo " Or use a fresh OS installation"
 	echo " "
 	echo " Install script terminated!"
 	break
@@ -319,7 +331,7 @@ if [ -f $picodaemon ] ; then
 	echo " Looks like you already installed a PIco daemon"
 	echo " Script found some previous PIco UPS leftovers"
 	echo " You could use the removal menu option to remove all necessities"
-	echo " Or use a fresh Rasbian 8.0 jessie installation"
+	echo " Or use a fresh OS installation"
 	echo " "
 	echo " Install script terminated!"
 	echo " "
@@ -340,7 +352,7 @@ if [ -f $picoinit ] ; then
 	echo " Looks like you already installed a PIco daemon"
 	echo " Script found some previous PIco UPS leftovers"
 	echo " You could use the Removal menu option to remove all necessities"
-	echo " Or use a fresh Rasbian 8.0 jessie installation"
+	echo " Or use a fresh OS installation"
 	echo " "
 	echo " Install script terminated!"
 	echo " "
@@ -365,7 +377,7 @@ if [ -f $picofile1 ] || [ -f $picofile2 ] || [ -f $picofile3 ] || [ -f $picofile
 	echo " Looks like you already installed a PIco daemon"
 	echo " Script found some previous PIco UPS leftovers"
 	echo " You could use the Removal menu option to remove all necessities"
-	echo " Or use a fresh Rasbian 8.0 jessie installation"
+	echo " Or use a fresh OS installation"
 	echo " "
 	echo " Install script terminated!"
 	echo " "
@@ -376,34 +388,34 @@ else
 fi
 
 ### Checking if i2c is enabled
-	raspii2c=`cat /boot/config.txt | grep dtparam=i2c_arm=on`
+
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
-	echo " -> dtparam=i2c_arm already enabled, step skipped"
+	echo " -> dtparam=i2c_arm already enabled in $config, step skipped"
 elif [ "$raspii2c" == "#dtparam=i2c_arm=on" ]; then
-	echo " -> dtparam=i2c_arm enabled"
-	sed -i "s,$raspii2c,dtparam=i2c_arm=on," /boot/config.txt
+	echo " -> dtparam=i2c_arm enabled in $config"
+	sed -i "s,$raspii2c,dtparam=i2c_arm=on," $config
 else
-	echo " -> dtparam=i2c_arm enabled"
-	sh -c "echo 'dtparam=i2c_arm=on' >> /boot/config.txt"
+	echo " -> dtparam=i2c_arm enabled in $config"
+	sh -c "echo 'dtparam=i2c_arm=on' >> $config"
 fi
 	sleep 1
 
 ### Checking if serial uart is enabled
-	raspiuart=`cat /boot/config.txt | grep enable_uart`
+	raspiuart=`cat $config | grep enable_uart`
 if [ "$raspiuart" == "enable_uart=1" ]; then
-	echo " -> serial uart already enabled, step skipped"
+	echo " -> serial uart already enabled in $config, step skipped"
 elif [ "$raspiuart" == "#enable_uart=1" ]; then
-	echo " -> serial uart enabled"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> serial uart enabled in $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 elif [ "$raspiuart" == "#enable_uart=0" ]; then
-	echo " -> serial uart enabled"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> serial uart enabled in $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 elif [ "$raspiuart" == "enable_uart=0" ]; then
-	echo " -> serial uart enabled"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> serial uart enabled in $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 else
-	echo " -> serial uart enabled"
-	sh -c "echo 'enable_uart=1' >> /boot/config.txt"
+	echo " -> serial uart enabled in $config"
+	sh -c "echo 'enable_uart=1' >> $config"
 fi
 sleep 1
 
@@ -412,56 +424,56 @@ sleep 1
 	rtcmoduleold2=`cat /etc/rc.local | grep echo`
 if [ $(version $kernel_version) -lt $(version "4.3") ] ; then
 	if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-		echo " -> old kernel rtc module already enabled, step skipped"
+		echo " -> old kernel rtc module already enabled in /etc/modules, step skipped"
 	elif [ "$rtcmoduleold" == "#rtc-ds1307" ]; then
-		echo " -> old kernel rtc module enabled"
+		echo " -> old kernel rtc module enabled in /etc/modules"
 		sed -i "s,$rtcmoduleold,rtc-ds1307," /etc/modules
 	else
-		echo " -> old kernel rtc module enabled"
+		echo " -> old kernel rtc module enabled in /etc/modules"
 		sh -c "echo 'rtc-ds1307' >> /etc/modules"
 	fi
 		sleep 1
 
 ### Checking for old kernel rtc statement in rc.local
 	if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-		echo " -> old kernel rtc rc.local statement already enabled, step skipped"
+		echo " -> old kernel rtc rc.local statement already enabled in /etc/rc.local, step skipped"
 	elif [ "$rtcmoduleold2" == "#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then 
-		echo " -> old kernel rtc rc.local statement enabled"
+		echo " -> old kernel rtc rc.local statement enabled in /etc/rc.local"
 		sed -i "s,$rtcmoduleold2,echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local
 	else
-		echo " -> old kernel rtc rc.local statement enabled"
+		echo " -> old kernel rtc rc.local statement enabled in /etc/rc.local"
 		sed -i 's/\exit 0//g' /etc/rc.local
 		echo "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &"  >> /etc/rc.local
 		sh -c "echo 'exit 0' >> /etc/rc.local"
 	fi
 else
 	if [ "$rtcmoduleold" == "rtc-ds1307" ]; then
-		echo " -> old kernel rtc module detected, module disabled"
+		echo " -> old kernel rtc module detected, module disabled in /etc/modules"
 		sed -i "s,$rtcmoduleold,#rtc-ds1307," /etc/modules
 	else
-		echo " -> no old kernel rtc module statement detected, step skipped"
+		echo " -> no old kernel rtc module statement detected in /etc/modules, step skipped"
 	fi
 		sleep 1
 
 ### Checking for old kernel rtc statement in rc.local
 	if [ "$rtcmoduleold2" == "echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &" ]; then
-		echo " -> old kernel rtc rc.local statement detected, statement disabled"
+		echo " -> old kernel rtc rc.local statement detected, statement disabled in /etc/rc.local"
 		sed -i "s,$rtcmoduleold2,#echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device ( sleep 4; hwclock -s ) &," /etc/rc.local
 	else
-		echo " -> no old kernel rtc rc.local statement, step skipped"
+		echo " -> no old kernel rtc rc.local statement in /etc/rc.local, step skipped"
 	fi
 		sleep 1
 
 ### Checking if rtc dtoverlay module is loaded
-	rtcmodule=`cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
+	rtcmodule=`cat $config | grep dtoverlay=i2c-rtc,ds1307`
 	if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
-		echo " -> dtoverlay=i2c-rtc already enabled, step skipped"
+		echo " -> dtoverlay=i2c-rtc already enabled in $config, step skipped"
 	elif [ "$rtcmodule" == "#dtoverlay=i2c-rtc,ds1307" ]; then
-		echo " -> dtoverlay=i2c-rtc enabled"
-		sed -i -e 's/#dtoverlay=i2c-rtc,ds1307/dtoverlay=i2c-rtc,ds1307/g' /boot/config.txt
+		echo " -> dtoverlay=i2c-rtc enabled in $config"
+		sed -i -e 's/#dtoverlay=i2c-rtc,ds1307/dtoverlay=i2c-rtc,ds1307/g' $config
 	else
-		echo " -> dtoverlay=i2c-rtc enabled"
-		sh -c "echo 'dtoverlay=i2c-rtc,ds1307' >> /boot/config.txt"
+		echo " -> dtoverlay=i2c-rtc enabled in $config"
+		sh -c "echo 'dtoverlay=i2c-rtc,ds1307' >> $config"
 	fi
 		sleep 1
 
@@ -470,12 +482,12 @@ fi
 ### Checking if i2c-bcm2708 module is loaded
 	bcmmodule=`cat /etc/modules | grep i2c-bcm2708`
 if [ "$bcmmodule" == "i2c-bcm2708" ]; then
-	echo " -> i2c-bcm2708 module already enabled, step skipped"
+	echo " -> i2c-bcm2708 module already enabled in /etc/modules, step skipped"
 elif [ "$bcmmodule" == "#i2c-bcm2708" ]; then
-	echo " -> i2c-bcm2708 module enabled"
+	echo " -> i2c-bcm2708 module enabled in /etc/modules"
 	sed -i "s,$bcmmodule,i2c-bcm2708," /etc/modules
 else
-	echo " -> i2c-bcm2708 module enabled"
+	echo " -> i2c-bcm2708 module enabled in /etc/modules"
 	sh -c "echo 'i2c-bcm2708' >> /etc/modules"
 fi
 	sleep 1
@@ -483,12 +495,12 @@ fi
 ### Checking if i2c-dev module is loaded
 	i2cmodule=`cat /etc/modules | grep i2c-dev`
 if [ "$i2cmodule" == "i2c-dev" ]; then
-	echo " -> i2c-dev module already enabled, step skipped"
+	echo " -> i2c-dev module already enabled in /etc/modules, step skipped"
 elif [ "$i2cmodule" == "#i2c-dev" ]; then
-	echo " -> i2c-dev module enabled"
+	echo " -> i2c-dev module enabled in /etc/modules"
 	sed -i "s,$i2cmodule,i2c-dev," /etc/modules
 else
-	echo " -> i2c-dev module enabled"
+	echo " -> i2c-dev module enabled in /etc/modules"
 	sh -c "echo 'i2c-dev' >> /etc/modules"
 fi
 	sleep 1
@@ -659,7 +671,7 @@ fi
 	echo " System will be rebooted in 15 seconds to let every changed be activated and loaded"
 	echo " "
 	sleep 15
-	reboot
+	#reboot
 	;;
 
 "Remove  - PIco HV3.0A")
@@ -681,9 +693,9 @@ fi
 	picofile3="/usr/local/lib/python2.7/dist-packages/pimodules-0.1dev.egg-info"
 	picofile4="/usr/local/lib/python2.7/dist-packages/pimodules/picofssd-0.1dev-py2.7.egg-info"
 	picofile5="/etc/default/picofssd"
-	raspii2c=`cat /boot/config.txt | grep dtparam=i2c_arm=on`
-	raspiuart=`cat /boot/config.txt | grep enable_uart`
-	rtcmodule=`cat /boot/config.txt | grep dtoverlay=i2c-rtc,ds1307`
+	raspii2c=`cat $config | grep dtparam=i2c_arm=on`
+	raspiuart=`cat $config | grep enable_uart`
+	rtcmodule=`cat $config | grep dtoverlay=i2c-rtc,ds1307`
 	bcmmodule=`cat /etc/modules | grep i2c-bcm2708`
 	rtcmoduleold=`cat /etc/modules | grep rtc-ds1307`
 	rtcmoduleold2=`cat /etc/rc.local | grep echo`
@@ -758,7 +770,7 @@ sleep 1
 if [ "$raspii2c" == "dtparam=i2c_arm=on" ]; then
 	read -p " -> disable dtparam=i2c_arm? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-		sed -i "s,$raspii2c,#dtparam=i2c_arm=on," /boot/config.txt
+		sed -i "s,$raspii2c,#dtparam=i2c_arm=on," $config
 	fi
 else
 	echo " -> dtparam=i2c_arm already disabled, step skipped"
@@ -769,7 +781,7 @@ fi
 if [ "$raspiuart" == "enable_uart=1" ]; then
 	read -p " -> disable serial uart? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-		sed -i "s,$raspiuart,#enable_uart=1," /boot/config.txt
+		sed -i "s,$raspiuart,#enable_uart=1," $config
 	fi
 else
 	echo " -> serial uart already disabled, step skipped"
@@ -780,7 +792,7 @@ fi
 if [ "$rtcmodule" == "dtoverlay=i2c-rtc,ds1307" ]; then
 	read -p " -> disable dtoverlay=i2c-rtc? (y/n)" CONT
 	if [ "$CONT" = "y" ]; then
-		sed -i -e 's/dtoverlay=i2c-rtc/#dtoverlay=i2c-rtc/g' /boot/config.txt
+		sed -i -e 's/dtoverlay=i2c-rtc/#dtoverlay=i2c-rtc/g' $config
 	fi
 else
 	echo " -> dtoverlay=i2c-rtc already disabled, step skipped"
@@ -977,7 +989,7 @@ fi
 	echo " System will be rebooted in 15 seconds..."
 	echo " "
 	sleep 15
-	reboot
+	#reboot
 else
 	clear
 	echo " "
@@ -1164,44 +1176,44 @@ fi
 sleep 1
 
 ### Checking bluetooth (dtoverlay=pi3-disable-bt) is disabled
-	btoverlay=`cat /boot/config.txt | grep dtoverlay=pi3-disable-bt`
+	btoverlay=`cat $config | grep dtoverlay=pi3-disable-bt`
 if [ "$btoverlay" == "dtoverlay=pi3-disable-bt" ]; then
-	echo " -> dtoverlay=pi3-disable-bt already set to /boot/config.txt, step skipped"
+	echo " -> dtoverlay=pi3-disable-bt already set to $config, step skipped"
 elif [ "$btoverlay" == "#dtoverlay=pi3-disable-bt" ]; then
-	echo " -> dtoverlay=pi3-disable-bt set to /boot/config.txt"
-	sed -i "s,$btoverlay,dtoverlay=pi3-disable-bt," /boot/config.txt
+	echo " -> dtoverlay=pi3-disable-bt set to $config"
+	sed -i "s,$btoverlay,dtoverlay=pi3-disable-bt," $config
 	touch $picobtreboot
 	touch $picoreboot
 else
-	echo " -> dtoverlay=pi3-disable-bt set to /boot/config.txt"
-	sh -c "echo 'dtoverlay=pi3-disable-bt' >> /boot/config.txt"
+	echo " -> dtoverlay=pi3-disable-bt set to $config"
+	sh -c "echo 'dtoverlay=pi3-disable-bt' >> $config"
 	touch $picobtreboot
 	touch $picoreboot
 fi
 	sleep 1
 
 ### Checking serial uart (enable_uart=1) is enabled
-	raspiuart=`cat /boot/config.txt | grep enable_uart`
+	raspiuart=`cat $config | grep enable_uart`
 if [ "$raspiuart" == "enable_uart=1" ]; then
-	echo " -> enable_uart already set to /boot/config.txt, step skipped"
+	echo " -> enable_uart already set to $config, step skipped"
 elif [ "$raspiuart" == "#enable_uart=1" ]; then
-	echo " -> enable_uart set to /boot/config.txt"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> enable_uart set to $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 	touch $picouartreboot
 	touch $picoreboot
 elif [ "$raspiuart" == "#enable_uart=0" ]; then
-	echo " -> enable_uart set to /boot/config.txt"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> enable_uart set to $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 	touch $picouartreboot
 	touch $picoreboot
 elif [ "$raspiuart" == "enable_uart=0" ]; then
-	echo " -> enable_uart set to /boot/config.txt"
-	sed -i "s,$raspiuart,enable_uart=1," /boot/config.txt
+	echo " -> enable_uart set to $config"
+	sed -i "s,$raspiuart,enable_uart=1," $config
 	touch $picouartreboot
 	touch $picoreboot
 else
-	echo " -> enable_uart set to /boot/config.txt"
-	sh -c "echo 'enable_uart=1' >> /boot/config.txt"
+	echo " -> enable_uart set to $config"
+	sh -c "echo 'enable_uart=1' >> $config"
 	touch $picouartreboot
 	touch $picoreboot
 fi
@@ -1237,7 +1249,7 @@ if [ -f $picoreboot ]; then
 	echo " "
 	rm -rf $picoreboot
 	sleep 10
-	reboot
+	#reboot
 	exit 0
 else
 	clear
@@ -1272,7 +1284,7 @@ if [ "$picobtactive" == "active" ] ; then
 	echo " Thx $user for using PIco HV3.0A upgrade script"
 	echo " Please disable Bluetooth (dtoverlay=pi3-disable-bt)"
 	echo " It's mandatory otherwise you can't upgrade firmware"
-	echo " If you amended your /boot/config.txt manually then please reboot your system"
+	echo " If you amended your $config manually then please reboot your system"
 	echo " After your system has been rebooted then please continue the upgrade process"
 	echo " "
 	echo " Upgrade script terminated!"
@@ -1324,16 +1336,16 @@ fi
 ### Checking if bluetooth and uart where active earlier then enable and restart it
 if [ -f $picobtreboot ] ; then
 	if [ "$btoverlay" == "dtoverlay=pi3-disable-bt" ]; then
-		echo " -> dtoverlay=pi3-disable-bt disabled in /boot/config.txt"
-		sed -i "s,$btoverlay,#dtoverlay=pi3-disable-bt," /boot/config.txt
+		echo " -> dtoverlay=pi3-disable-bt disabled in $config"
+		sed -i "s,$btoverlay,#dtoverlay=pi3-disable-bt," $config
 		rm -rf $picobtreboot
 	fi 
 fi
 
 if [ -f $picouartreboot ] ; then
 	if [ "$raspiuart" == "enable_uart=1" ]; then
-		echo " -> enable_uart enabled in /boot/config.txt"
-		sed -i "s,$raspiuart,#enable_uart=1," /boot/config.txt
+		echo " -> enable_uart enabled in $config"
+		sed -i "s,$raspiuart,#enable_uart=1," $config
 		rm -rf $picouartreboot
 	fi 
 fi
@@ -1355,14 +1367,14 @@ fi
 	echo " If no errors occured then everything should be up and running"
 	echo " "
 	echo " CAUTION: PIco board has been factory reset"
-	echo " So if your using a battery other then 450mah then please set your desired battery type after reboot"
+	echo " So if your using a battery other then 450mah then please set your desired battery type after #reboot"
 	echo " "
 	echo " System will be rebooted in 15 seconds"
 	echo " "
 	echo " Enjoy and have a nice day..."
 	echo " "
 	sleep 15
-	reboot
+	#reboot
 ;;
 
 "Config - PIco HV3.0A")
