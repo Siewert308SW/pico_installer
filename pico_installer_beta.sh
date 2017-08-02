@@ -5,7 +5,7 @@
 ### pico_installer.sh
 ### @author		: Siewert Lameijer
 ### @since		: 21-3-2017
-### @updated	: 1-8-2017
+### @updated	: 2-8-2017
 ### Script for installing PIco HV3.0A UPS
 
 #######################################################################################################
@@ -145,8 +145,11 @@ fi
 
 ### Checking if OS version matches preferences
 	release=`/usr/bin/lsb_release -s -d`
-if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
+if [ "$release" == "Raspbian GNU/Linux 8.0 (jessie)" ] || [ "$release" == "Ubuntu 16.04.2 LTS" ] ; then
+	echo " -> Detected a compatible version of $release"
+	sleep 1
 	clear
+else
 	echo " "
 	echo "::: PIco UPS HV3.0A Install Script Terminated"
 	echo "------------------------------------------------------------------------"
@@ -156,10 +159,7 @@ if [ "$release" != "Raspbian GNU/Linux 8.0 (jessie)" ]; then
 	echo " "
 	echo " Install script terminated!"
 	echo " "
-	exit 0
-else
-	echo " -> Detected a compatible version of $release"
-	sleep 1	
+	exit 0	
 fi
 
 ### Checking if RPi version matches preferences
@@ -252,7 +252,7 @@ case $opt in
 	echo " Precautions:"
 	echo " 1. Install your PIco UPS board before continuing"
 	echo " 2. This script is only intended for Raspberry Pi 3 Model B Rev 1.2"
-	echo " 3. Use a clean Rasbian Jessie 8.0 installation"
+	echo " 3. Use a clean Rasbian Jessie 8.0, Minibian or Ubuntu 16.04.2 LTS installation"
 	echo "    Or a installation which hasn't seen a previously installed PIco daemon "
 	echo " 4. Compatible 4.1 kernel or higher"
 	echo " 5. Preflashed PIco firmware 0x30 or higher"
