@@ -254,7 +254,7 @@ case $opt in
 	echo " There are some precautions and necessities to install"
 	echo " Most of them are done by the install script"
 	echo " "
-	echo " Supported OS versions:"
+	echo " Supported OS distros:"
 	echo " - Rasbian Jessie 8.0"
 	echo " - Minibian"
 	echo " - Ubuntu 16.04.2 LTS"
@@ -671,7 +671,7 @@ fi
 	echo " System will be rebooted in 15 seconds to let every changed be activated and loaded"
 	echo " "
 	sleep 15
-	#reboot
+	reboot
 	;;
 
 "Remove  - PIco HV3.0A")
@@ -989,7 +989,7 @@ fi
 	echo " System will be rebooted in 15 seconds..."
 	echo " "
 	sleep 15
-	#reboot
+	reboot
 else
 	clear
 	echo " "
@@ -1249,7 +1249,7 @@ if [ -f $picoreboot ]; then
 	echo " "
 	rm -rf $picoreboot
 	sleep 10
-	#reboot
+	reboot
 	exit 0
 else
 	clear
@@ -1367,14 +1367,14 @@ fi
 	echo " If no errors occured then everything should be up and running"
 	echo " "
 	echo " CAUTION: PIco board has been factory reset"
-	echo " So if your using a battery other then 450mah then please set your desired battery type after #reboot"
+	echo " So if your using a battery other then 450mah then please set your desired battery type after reboot"
 	echo " "
 	echo " System will be rebooted in 15 seconds"
 	echo " "
 	echo " Enjoy and have a nice day..."
 	echo " "
 	sleep 15
-	#reboot
+	reboot
 ;;
 
 "Config - PIco HV3.0A")
