@@ -15,10 +15,10 @@ And takes care everything for you in order to be able to install all PIco UPS HV
 # Precautions
 1. Install your PIco UPS board before continuing<br />
 2. This script is only intended for Raspberry Pi 3 Model B Rev 1.2<br />
-3. Use a clean Rasbian Jessie 8.0 installation<br />
+3. Its adviced to use a clean Rasbian Jessie, Stretch, Minibian, DietPi, Ubuntu Mate or LibreELE installation<br />
 4. Latest 4.4.50 or 4.9 kernel<br />
 5. Preflashed PIco firmware 0x30 or higher<br />
-6. Set correct timezone in raspi-config<br />
+6. Correct timezone in raspi-config<br />
 7. It's advised to make a backup of your sdcard first before continuing<br />
 <br />
 
