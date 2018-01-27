@@ -1,7 +1,7 @@
-![alt text](pico_installer.png "motd")
+![alt text](picotoolkit.png "toolkit")
 <br />
 
-# PIco UPS HV3.0A Installer
+# PIco UPS HV3.0A Toolkit
 Bash script that installs all necessities for PIco HV3.0A series<br />
 If you want to comment or report bugs then please visit my thread on Pimodules.<br />
 http://www.forum.pimodules.com/viewtopic.php?f=27&t=4870 <br />
@@ -24,10 +24,10 @@ And takes care everything for you in order to be able to install all PIco UPS HV
 
 # Install guide via ssh
 1. SSH into your Raspberry PI<br />
-2. Create a bash file called pico_installer.sh<br />
+2. Create a bash file called picotoolkit.sh<br />
 3. Copy and past the content from the (here) into your new create .sh file<br />
-4. chmod +x /<file_location>/pico_installer.sh<br />
-5. sudo bash /<file_location>/pico_installer.sh<br />
+4. chmod +x /<file_location>/picotoolkit.sh<br />
+5. sudo bash /<file_location>/picotoolkit.sh<br />
 6. Follow instructions...<br />
 <br />
 
@@ -35,8 +35,8 @@ And takes care everything for you in order to be able to install all PIco UPS HV
 1. Download a pre zipped .sh file from here<br />
 2. Unzip this zipped file and copy the content to your Raspberry Pi with any kind of ftp program<br />
 3. SSH into your Raspberry PI<br />
-4. chmod +x /<file_location>/pico_installer.sh<br />
-5. sudo bash /<file_location>/pico_installer.sh<br />
+4. chmod +x /<file_location>/picotoolkit.sh<br />
+5. sudo bash /<file_location>/picotoolkit.sh<br />
 6. Follow instructions...<br />
 <br />
 
